@@ -1,0 +1,5 @@
+*.o
+*.swp
+datagrump-sender
+datagrump-receiver
+depend

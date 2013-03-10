@@ -11,6 +11,9 @@ private:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
+  double cwnd;
+
+  double rtt;
 
 public:
   /* Public interface for the flow controller */
