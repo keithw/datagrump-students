@@ -6,11 +6,17 @@
 using namespace Network;
 
 // #define FIXED_WINDOW
-#define AIMD
+// #define AIMD
+#define DELAY_TRIGGER
 
 // AIMD constants
-#define ALPHA (0.9)
-#define BETA (2.0)
+#define ALPHA (0.95)
+#define BETA (1.5)
+
+// Delay-trigger constants
+#define DELAY_THRESHOLD (150)
+
+// Shared AIMD Delay-trigger constants
 #define AI (1.0)
 #define MD (1.0 / 2)
 
@@ -37,6 +43,9 @@ unsigned int Controller::window_size( void )
 #ifdef AIMD
   return (unsigned int) cwnd;
 #endif
+#ifdef DELAY_TRIGGER
+  return (unsigned int) cwnd;
+#endif
 }
 
 /* A packet was sent */
@@ -50,8 +59,6 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
     fprintf( stderr, "At time %lu, sent packet %lu.\n",
 	     send_timestamp, sequence_number );
   }
-#ifdef AIMD
-#endif
 }
 
 /* An ack was received */
@@ -88,6 +95,20 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   // Otherwise, AI 1/cw
   if (this_rtt > BETA * rtt) {
     cwnd *= MD;
+    if (cwnd < 1.0) {
+      cwnd = 1.0;
+    }
+  } else {
+    cwnd += (AI / ((unsigned int) cwnd));
+  }
+#endif
+#ifdef DELAY_TRIGGER
+  const uint64_t this_rtt = timestamp_ack_received - send_timestamp_acked;
+  if (this_rtt > DELAY_THRESHOLD) {
+    cwnd *= MD;
+    if (cwnd < 1.0) {
+      cwnd = 1.0;
+    }
   } else {
     cwnd += (AI / ((unsigned int) cwnd));
   }
