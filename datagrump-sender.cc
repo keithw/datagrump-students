@@ -64,6 +64,9 @@ int main( int argc, char *argv[] )
 	sock.send( x );
 	controller.packet_was_sent( x.sequence_number(),
 				    x.send_timestamp() );
+	/*tell controller*/
+	controller.packet_timed_out();
+
       } else {
 	/* we got an acknowledgment */
 	Packet ack = sock.recv();

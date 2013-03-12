@@ -7,7 +7,7 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug )
+  : debug_( debug ), alpha(1), beta(0.1), w_size(1)
 {
 }
 
@@ -15,14 +15,14 @@ Controller::Controller( const bool debug )
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
-  int the_window_size = 1;
+  /*int the_window_size = 15;*/
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
-	     timestamp(), the_window_size );
+	     timestamp(), w_size );
   }
 
-  return the_window_size;
+  return w_size;
 }
 
 /* A packet was sent */
@@ -49,6 +49,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
                                /* when the ack was received (by sender) */
 {
   /* Default: take no action */
+  w_size = w_size+alpha;
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
@@ -63,4 +64,9 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 unsigned int Controller::timeout_ms( void )
 {
   return 1000; /* timeout of one second */
+}
+
+void Controller::packet_timed_out(void)
+{
+  w_size = (unsigned int)(w_size*beta);
 }

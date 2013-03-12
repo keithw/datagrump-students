@@ -9,8 +9,10 @@ class Controller
 {
 private:
   bool debug_; /* Enables debugging output */
-
-  /* Add member variables here */
+  /* Add member variables here */ 
+  int alpha;
+  double beta;
+  unsigned int w_size;
 
 public:
   /* Public interface for the flow controller */
@@ -35,6 +37,10 @@ public:
 
   /* How long to wait if there are no acks before sending one more packet */
   unsigned int timeout_ms( void );
-};
 
+  /* Packet timed out */
+  void packet_timed_out(void);
+};
+  
+  
 #endif
