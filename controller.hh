@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include <map>
+
 /* Flow controller interface */
 
 class Controller
@@ -11,6 +13,8 @@ private:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
+//////// std:: map<uint64_t,uint64_t> packet_sent_times;
+  uint64_t curr_window_size;
 
 public:
   /* Public interface for the flow controller */

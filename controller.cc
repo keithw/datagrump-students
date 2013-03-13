@@ -7,7 +7,7 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug )
+  : debug_( debug ), curr_window_size(1)  /////packet_sent_times()
 {
 }
 
@@ -15,7 +15,7 @@ Controller::Controller( const bool debug )
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
-  int the_window_size = 1;
+  int the_window_size = curr_window_size;
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
@@ -31,7 +31,9 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
 				  const uint64_t send_timestamp )
                                   /* in milliseconds */
 {
-  /* Default: take no action */
+  /* update packets sent times */
+  /////////packet_sent_times[sequence_number] = send_timestamp;
+
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, sent packet %lu.\n",
 	     send_timestamp, sequence_number );
@@ -48,7 +50,14 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
-  /* Default: take no action */
+  /* if delay is greater than the threshold, decrease window size.
+     Otherwise, increase the window size. */
+  uint64_t rtt = timestamp_ack_received - send_timestamp_acked;
+  if (rtt > 50 && curr_window_size > 1)
+    curr_window_size--;
+  else
+    curr_window_size++;
+
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
