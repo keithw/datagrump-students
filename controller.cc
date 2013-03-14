@@ -11,11 +11,17 @@ Controller::Controller( const bool debug )
 {
 }
 
+void Controller::notify_timeout( void ) {
+  curr_window_size /= 2;
+  if (curr_window_size <= 1)
+    curr_window_size = 1;
+}
+
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
-  int the_window_size = curr_window_size;
+  int the_window_size = (int)curr_window_size;
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
@@ -50,14 +56,18 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
-  /* if delay is greater than the threshold, decrease window size.
-     Otherwise, increase the window size. */
+/*
+  // if delay is greater than the threshold, decrease window size.
+  //   Otherwise, increase the window size.
   uint64_t rtt = timestamp_ack_received - send_timestamp_acked;
   if (rtt > 50 && curr_window_size > 1)
     curr_window_size--;
   else
     curr_window_size++;
+*/
 
+  // additive increase
+  curr_window_size += 1/curr_window_size;
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",

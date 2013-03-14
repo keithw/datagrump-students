@@ -14,7 +14,7 @@ private:
 
   /* Add member variables here */
 //////// std:: map<uint64_t,uint64_t> packet_sent_times;
-  uint64_t curr_window_size;
+  float curr_window_size;
 
 public:
   /* Public interface for the flow controller */
@@ -23,6 +23,9 @@ public:
 
   /* Default constructor */
   Controller( const bool debug );
+
+  /* tells controller a timeout has occurred */
+  void notify_timeout( void );
 
   /* Get current window size, in packets */
   unsigned int window_size( void );
