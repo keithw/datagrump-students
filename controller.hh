@@ -10,9 +10,8 @@ class Controller
 private:
   bool debug_; /* Enables debugging output */
   /* Add member variables here */ 
-  int alpha;
-  double beta;
-  unsigned int w_size;
+  double alpha;
+  double w_size;
 
 public:
   /* Public interface for the flow controller */
