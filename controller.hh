@@ -9,6 +9,7 @@ class Controller
 {
 private:
   bool debug_; /* Enables debugging output */
+  
   /* Add member variables here */ 
   double alpha;
   double w_size;
