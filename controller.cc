@@ -5,26 +5,24 @@
 
 using namespace Network;
 
-// testing things
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug )
+  : debug_( debug ), the_window_size(0)
 {
 }
 
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
+  the_window_size = 10;
   /* Default: fixed window size of one outstanding packet */
-  int the_window_size = 1;
-
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
 	     timestamp(), the_window_size );
   }
-
   return the_window_size;
+
 }
 
 /* A packet was sent */
@@ -59,6 +57,8 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
 	     send_timestamp_acked, recv_timestamp_acked );
   }
+  
+
 }
 
 /* How long to wait if there are no acks before sending one more packet */
