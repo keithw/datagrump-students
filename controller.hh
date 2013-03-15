@@ -7,12 +7,18 @@
 
 class Controller
 {
+public:
+  struct ConfigParams {
+    double AI;
+    double MD;
+  };
+
 private:
   bool debug_; /* Enables debugging output */
   
   /* Add member variables here */ 
-  double alpha;
-  double w_size;
+  double w_size_;
+  ConfigParams params_; /* Params for AIMD and beyond. */
 
 public:
   /* Public interface for the flow controller */
@@ -21,6 +27,9 @@ public:
 
   /* Default constructor */
   Controller( const bool debug );
+
+  /* Loads all params from file */
+  void LoadParams(const char* filename);
 
   /* Get current window size, in packets */
   unsigned int window_size( void );

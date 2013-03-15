@@ -1,14 +1,35 @@
 #include <stdio.h>
+#include <fstream>
+
+#include "math.h"
 
 #include "controller.hh"
 #include "timestamp.hh"
 
 using namespace Network;
+using namespace std;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), alpha(0.5), w_size(1)
+  : debug_( debug ), w_size_(1), params_()
 {
+  /* Default parameters */
+  params_.AI = 1.0;
+  params_.MD = 0.5;
+
+  LoadParams("controller_config.txt");
+}
+
+/* Loads all params from file */
+void Controller::LoadParams(const char* filename) {
+  try {
+    ifstream param_file(filename);
+    param_file >> params_.AI;
+    param_file >> params_.MD;
+  } catch (...) {
+    fprintf(stderr, "There's something wrong with the file. Some params will have default values.\n");
+  }
+  fprintf(stderr, "Read params AI:%.1f, MD:%.1f\n", params_.AI, params_.MD);
 }
 
 /* Get current window size, in packets */
@@ -18,10 +39,10 @@ unsigned int Controller::window_size( void )
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
-	     timestamp(), (unsigned int) w_size );
+	     timestamp(), (unsigned int) w_size_ );
   }
 
-  return (unsigned int) w_size;
+  return (unsigned int) w_size_;
 }
 
 /* A packet was sent */
@@ -48,7 +69,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
                                /* when the ack was received (by sender) */
 {
   /* Default: take no action */
-  w_size = w_size+1/w_size;
+  w_size_ = w_size_ + params_.AI / max(w_size_, 1.0);
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
@@ -62,10 +83,10 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 1000; /* timeout in ms */
+  return 1000;  /* timeout in ms */
 }
 
 void Controller::packet_timed_out(void)
 {
-  w_size = w_size - alpha*w_size;
+  w_size_ = w_size_ - params_.MD * w_size_;
 }
