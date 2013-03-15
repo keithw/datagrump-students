@@ -83,7 +83,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 1000;  /* timeout in ms */
+  return 1000; /* timeout in ms */
 }
 
 void Controller::packet_timed_out(void)
