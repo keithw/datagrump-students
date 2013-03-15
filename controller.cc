@@ -7,7 +7,7 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), alpha(0.1), w_size(1)
+  : debug_( debug ), alpha(0.5), w_size(1)
 {
 }
 
@@ -62,10 +62,10 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 1000; /* timeout of one second */
+  return 1000; /* timeout in ms */
 }
 
 void Controller::packet_timed_out(void)
 {
-  w_size = (unsigned int)(w_size*alpha);
+  w_size = w_size - alpha*w_size;
 }
