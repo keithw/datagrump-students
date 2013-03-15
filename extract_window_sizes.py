@@ -2,8 +2,9 @@
 # extract window sizes from sender-stderr
 
 import sys
+import matplotlib as mpl
+mpl.use('Agg')
 from pylab import *
-
 
 
 def extract_window_sizes(input_file, output_file):
