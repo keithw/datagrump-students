@@ -1,0 +1,81 @@
+#!/usr/bin/perl -w
+
+use strict;
+use IO::Uncompress::Gunzip;
+use File::Temp qw{tempdir tempfile};
+
+my ( $filename, $out_name ) = @ARGV;
+
+open my $f, $filename or die;
+
+my $last_ms = 0;
+
+my $time = 0;
+my $last_packet_sent = 0;
+my $capacity_sum = 0;
+my $used_sum = 0;
+my @pts;
+my $badstats = 0;
+
+EVENT: while ( <$f> ) {
+  chomp;
+
+  my ( $direction, $ms, $event, $field1, $field2 ) = split /\s+/, $_;
+  die "Bad direction $direction" unless $direction eq "downlink";
+  die "Bad event $event" unless $event eq "underflow" or $event eq "delivery";
+
+  die "nonmonotonic timestamps" unless $ms >= $last_ms;
+  $last_ms = $ms;
+
+  if ( $event eq "delivery" ) {
+    my $bits = $field2 * 8;
+    $used_sum += $bits;
+    $capacity_sum += $bits;
+  } elsif ( $event eq "underflow" ) {
+    my $bits = $field1 * 8;
+    $capacity_sum += $bits;
+    next EVENT;
+  }
+
+  my $ms_old = $field1;
+
+  while ( $time < $ms ) {
+    my $age = $time - $last_packet_sent;
+    my $secs = $time * 1.e-3;
+    push @pts, $age;
+    $time++;
+  }
+
+  my $new_last_packet_sent = $ms - $ms_old;
+#  die unless ( $new_last_packet_sent >= $last_packet_sent - 50 );
+  # rounding can screw this up a little
+  if ( $new_last_packet_sent > $last_packet_sent )
+  {
+    $last_packet_sent = $new_last_packet_sent
+  } elsif ( $last_packet_sent - $new_last_packet_sent > 10 ) {
+    my $newbad = $last_packet_sent - $new_last_packet_sent;
+    if ( $newbad > $badstats ) { $badstats = $newbad; }
+  }
+}
+
+@pts = sort { $b <=> $a } @pts;
+my $ninefive = $pts[ 0.05 * scalar @pts ];
+my $avg_throughput = 1.e-3 * $used_sum / $last_packet_sent;
+my $avg_capacity = 1.e-3 * $capacity_sum / $last_packet_sent;
+
+my $temp_filename = rand() . '-' . $$ . '-' . $out_name;
+open TEMP, ">", $temp_filename or die "$!";
+
+if ( $badstats ) {
+  print TEMP "<strong>Warning: scheduling jitter of $badstats ms observed. Did you remember to run <code>./update-git-repos</code>?</strong><br>\n";
+}
+
+# printf TEMP "Score %0.2f \n", log( $avg_throughput / $ninefive );
+print TEMP "Delay $ninefive\n";
+printf TEMP "ProtocolThroughput %0.2f\n", $avg_throughput;
+printf TEMP "NetworkCapacity %0.2f\n", $avg_capacity;
+# printf TEMP "Utilization %0.1f%%\n", 100 * $avg_throughput / $avg_capacity;
+
+close TEMP or die "$!";
+
+rename( $temp_filename, $out_name ) or die "$!";
