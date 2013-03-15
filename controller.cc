@@ -15,7 +15,7 @@ Controller::Controller( const bool debug )
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
-  int the_window_size = 10;
+  int the_window_size = 50;
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
