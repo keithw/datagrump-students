@@ -7,14 +7,24 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), curr_window_size(1)  /////packet_sent_times()
+  : debug_( debug ), curr_window_size(1), timeout_time(timestamp()-1000),
+        packets_in_queue(0)
+        /////packet_sent_times()
 {
 }
 
 void Controller::notify_timeout( void ) {
-  curr_window_size /= 2;
-  if (curr_window_size <= 1)
+  packets_in_queue--;
+  if (packets_in_queue < 0)
+    packets_in_queue = 0;
+
+  if (timestamp() > timeout_time + 500) {
     curr_window_size = 1;
+    timeout_time = timestamp();
+  }
+  /////curr_window_size /= 2;
+  /////if (curr_window_size <= 1)
+  /////  curr_window_size = 1;
 }
 
 /* Get current window size, in packets */
@@ -40,6 +50,8 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
   /* update packets sent times */
   /////////packet_sent_times[sequence_number] = send_timestamp;
 
+  packets_in_queue++;
+
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, sent packet %lu.\n",
 	     send_timestamp, sequence_number );
@@ -56,6 +68,19 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
+
+  packets_in_queue--;
+  if (packets_in_queue < 0)
+    packets_in_queue = 0;
+
+  if (timestamp() - time_cutoff < 100)
+    packet_counter++;
+  else {
+    packet_rate = packet_counter;
+    packet_counter = 1;
+    time_cutoff += 100;
+  }
+
 /*
   // if delay is greater than the threshold, decrease window size.
   //   Otherwise, increase the window size.
@@ -67,7 +92,12 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 */
 
   // additive increase
-  curr_window_size += 1/curr_window_size;
+  if (timestamp() >= timeout_time + 1000) {
+    if (curr_window_size < 1)
+      curr_window_size = 1;
+    else
+      curr_window_size += 1/(curr_window_size*curr_window_size);
+  }
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
@@ -81,5 +111,6 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 1000; /* timeout of one second */
+  /////return 1000; /* timeout of one second */
+  return 100;
 }

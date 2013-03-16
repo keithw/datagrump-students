@@ -16,6 +16,10 @@ private:
 //////// std:: map<uint64_t,uint64_t> packet_sent_times;
   float curr_window_size;
 
+  uint64_t timeout_time;
+
+  int packets_in_queue;
+
 public:
   /* Public interface for the flow controller */
   /* You can change these if you prefer, but will need to change
