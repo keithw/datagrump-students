@@ -59,6 +59,9 @@ int main( int argc, char *argv[] )
 	perror( "poll" );
 	throw string( "poll returned error." );
       } else if ( packet_received == 0 ) { /* timeout */
+	/* tell the controller */
+	controller.packet_timed_out();
+
 	/* send a packet */
 	Packet x( destination, sequence_number++ );
 	sock.send( x );

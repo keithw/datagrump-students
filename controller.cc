@@ -4,19 +4,18 @@
 #include "timestamp.hh"
 
 using namespace Network;
-
+using namespace std;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), the_window_size(0)
+  : debug_( debug ), the_window_size(1)
 {
 }
 
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
-  the_window_size = 10;
-  /* Default: fixed window size of one outstanding packet */
+ /* Default: fixed window size of one outstanding packet */
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
 	     timestamp(), the_window_size );
@@ -57,7 +56,12 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
 	     send_timestamp_acked, recv_timestamp_acked );
   }
-  
+  // additive increase
+  unsigned int max_window_size = 15;
+  if (the_window_size + 1 > max_window_size)
+    the_window_size = max_window_size;
+  else
+    the_window_size += 1;
 
 }
 
@@ -65,4 +69,13 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 unsigned int Controller::timeout_ms( void )
 {
   return 1000; /* timeout of one second */
+}
+
+void Controller::packet_timed_out( void)
+{
+  // multiplicative increase
+  if (the_window_size/2 > 1)
+    the_window_size /= 2;
+  else
+    the_window_size = 1;
 }

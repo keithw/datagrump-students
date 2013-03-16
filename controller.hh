@@ -35,6 +35,8 @@ public:
 
   /* How long to wait if there are no acks before sending one more packet */
   unsigned int timeout_ms( void );
+
+  void packet_timed_out (void) ; 
 };
 
 #endif
