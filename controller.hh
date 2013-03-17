@@ -11,6 +11,7 @@ private:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
+  int my_window_size_;
 
 public:
   /* Public interface for the flow controller */

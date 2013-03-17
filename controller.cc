@@ -7,22 +7,21 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug )
+  : debug_( debug ),
+    my_window_size_(15)
+    /* Default: fixed window size of 15 packets */
 {
 }
 
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
-  /* Default: fixed window size of one outstanding packet */
-  int the_window_size = 14;
-
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
-	     timestamp(), the_window_size );
+	     timestamp(), my_window_size_ );
   }
 
-  return the_window_size;
+  return my_window_size_;
 }
 
 /* A packet was sent */
