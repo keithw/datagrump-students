@@ -18,7 +18,7 @@ using namespace Network;
 // Shared AIMD Delay-trigger constants
 #define AI (1.0)
 #define MD (1.0 / 2)
-#define TIMEOUT_MS (500)
+#define TIMEOUT_MS (1000)
 
 /* Default constructor */
 Controller::Controller( const bool debug )
@@ -100,6 +100,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   } else {
     receive_gap = timestamp_ack_received - last_ack_received;
   }
+  last_ack_received = timestamp_ack_received;
 
   // If above timeout, consider as congestion signal and MD
   // Otherwise, AI 1/cw
