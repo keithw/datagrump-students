@@ -3,11 +3,13 @@
 #include "controller.hh"
 #include "timestamp.hh"
 
+#define max(a,b) a > b ? a : b
+
 using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug )
+  : debug_( debug ), w_size( 1.0 ), prev_send_time( 1 )
 {
 }
 
@@ -15,14 +17,14 @@ Controller::Controller( const bool debug )
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
-  int the_window_size = 1;
+  //  int the_window_size = 1;
 
   if ( debug_ ) {
-    fprintf( stderr, "At time %lu, return window_size = %d.\n",
-	     timestamp(), the_window_size );
+    fprintf( stderr, "At time %lu, return window_size = %f.\n",
+	     timestamp(), w_size );
   }
 
-  return the_window_size;
+  return max((unsigned int)(w_size + 0.5) - 2.0, 1) ;
 }
 
 /* A packet was sent */
@@ -49,6 +51,18 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
                                /* when the ack was received (by sender) */
 {
   /* Default: take no action */
+
+  uint64_t send_time = recv_timestamp_acked - send_timestamp_acked;
+  double send_delta = send_time / prev_send_time;
+  prev_send_time = send_time;
+  if (send_delta < 1.0) {
+    /* send time decreasing; increase window size */
+    w_size += .5 * send_delta;
+  }
+  else if (send_delta > 1.0) {
+    /* send time increasing; decrease window size */
+    w_size *= (1.0 / send_delta);
+  }
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",

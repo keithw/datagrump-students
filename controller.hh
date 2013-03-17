@@ -9,7 +9,8 @@ class Controller
 {
 private:
   bool debug_; /* Enables debugging output */
-
+  double w_size;
+  uint64_t prev_send_time;
   /* Add member variables here */
 
 public:
