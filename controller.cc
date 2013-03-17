@@ -12,26 +12,26 @@ using namespace Network;
 // FIXED_WINDOW constants
 #define FIXED_WINDOW_SIZE (18)
 
-// AIMD constants
-#define ALPHA (0.95)
-#define BETA (1.5)
-
 // Delay-trigger constants
 #define DELAY_THRESHOLD (300)
 
 // Shared AIMD Delay-trigger constants
 #define AI (1.0)
 #define MD (1.0 / 2)
+#define TIMEOUT_MS (500)
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), cwnd( 1.0 ), rtt( 0.0 )
+  : debug_( debug ),
+    cwnd( 1.0 ),
+    rtt( 0.0 ),
+    last_ack_received( 0 )
 {
 #ifdef FIXED_WINDOW
     fprintf( stderr, "Using FIXED_WINDOW\n");
 #endif
 #ifdef AIMD
-    fprintf( stderr, "Using AIMD\n");
+    fprintf( stderr, "Using AIMD, MD=%f, AI=%f, TIMEOUT_MS=%d\n", MD, AI, TIMEOUT_MS);
 #endif
 #ifdef DELAY_TRIGGER
     fprintf( stderr, "Using DELAY_TRIGGER\n");
@@ -93,19 +93,17 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 	     send_timestamp_acked, recv_timestamp_acked );
   }
 #ifdef AIMD
-  // Calculate RTT
-  const uint64_t this_rtt = timestamp_ack_received - send_timestamp_acked;
-
-  // Update moving average RTT
-  if (rtt == 0.0) {
-    rtt = this_rtt;
+  // Calculate gap since last ack
+  uint64_t receive_gap;
+  if (last_ack_received == 0) {
+    receive_gap = 0;
   } else {
-    rtt = (ALPHA) * rtt + (1.0 - ALPHA) * this_rtt;
+    receive_gap = timestamp_ack_received - last_ack_received;
   }
 
-  // If above average, consider as congestion signal and MD
+  // If above timeout, consider as congestion signal and MD
   // Otherwise, AI 1/cw
-  if (this_rtt > BETA * rtt) {
+  if (receive_gap > timeout_ms()) {
     cwnd *= MD;
     if (cwnd < 1.0) {
       cwnd = 1.0;
@@ -130,6 +128,6 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 1000; /* timeout of one second */
+  return TIMEOUT_MS; /* timeout of one second */
 }
 

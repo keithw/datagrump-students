@@ -15,6 +15,8 @@ private:
 
   double rtt;
 
+  uint64_t last_ack_received;
+
 public:
   /* Public interface for the flow controller */
   /* You can change these if you prefer, but will need to change
