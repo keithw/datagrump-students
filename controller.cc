@@ -6,15 +6,18 @@
 using namespace Network;
 
 // #define FIXED_WINDOW
-// #define AIMD
-#define DELAY_TRIGGER
+#define AIMD
+// #define DELAY_TRIGGER
+
+// FIXED_WINDOW constants
+#define FIXED_WINDOW_SIZE (18)
 
 // AIMD constants
 #define ALPHA (0.95)
 #define BETA (1.5)
 
 // Delay-trigger constants
-#define DELAY_THRESHOLD (150)
+#define DELAY_THRESHOLD (300)
 
 // Shared AIMD Delay-trigger constants
 #define AI (1.0)
@@ -24,6 +27,15 @@ using namespace Network;
 Controller::Controller( const bool debug )
   : debug_( debug ), cwnd( 1.0 ), rtt( 0.0 )
 {
+#ifdef FIXED_WINDOW
+    fprintf( stderr, "Using FIXED_WINDOW\n");
+#endif
+#ifdef AIMD
+    fprintf( stderr, "Using AIMD\n");
+#endif
+#ifdef DELAY_TRIGGER
+    fprintf( stderr, "Using DELAY_TRIGGER\n");
+#endif
 }
 
 /* Get current window size, in packets */
@@ -31,7 +43,7 @@ unsigned int Controller::window_size( void )
 {
 #ifdef FIXED_WINDOW
   /* Default: fixed window size of one outstanding packet */
-  int the_window_size = 2;
+  int the_window_size = FIXED_WINDOW_SIZE;
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
