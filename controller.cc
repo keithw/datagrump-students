@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 
 #include "controller.hh"
 #include "timestamp.hh"
@@ -15,14 +16,22 @@ Controller::Controller( const bool debug )
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
-  int the_window_size = 1;
+  //int the_window_size = 1;
 
   if ( debug_ ) {
-    fprintf( stderr, "At time %lu, return window_size = %d.\n",
+    fprintf( stderr, "At time %lu, return window_size = %f.\n",
 	     timestamp(), the_window_size );
   }
 
   return the_window_size;
+}
+
+/* Timeout */
+
+void Controller::timeout()
+{
+    the_window_size = fmax(floor(the_window_size*md),1);
+    
 }
 
 /* A packet was sent */
@@ -48,6 +57,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
+  the_window_size = the_window_size + ai/the_window_size;
   /* Default: take no action */
 
   if ( debug_ ) {
