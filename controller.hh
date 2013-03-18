@@ -11,6 +11,7 @@ public:
   struct ConfigParams {
     double AI;
     double MD;
+    double AVG;
   };
 
 private:
@@ -18,8 +19,13 @@ private:
   
   /* Add member variables here */ 
   double w_size_;
+  double rtt_last_;
+  double rtt_min_;
+  double rtt_max_;
+  double rtt_avg_;
+  double rtt_ratio_;
   ConfigParams params_; /* Params for AIMD and beyond. */
-
+  
 public:
   /* Public interface for the flow controller */
   /* You can change these if you prefer, but will need to change
@@ -49,6 +55,9 @@ public:
 
   /* Packet timed out */
   void packet_timed_out(void);
+  
+  /* Update RTT statistics after ack received */
+  void update_rtt_stats(double rtt);
 };
   
   

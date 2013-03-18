@@ -11,11 +11,19 @@ using namespace std;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), w_size_(1), params_()
+  : debug_( debug ), 
+    w_size_(1), 
+    rtt_last_(0),
+    rtt_min_(100000.0),
+    rtt_max_(0),
+    rtt_avg_(0),
+    rtt_ratio_(1.0),
+    params_()
 {
   /* Default parameters */
   params_.AI = 1.0;
   params_.MD = 0.5;
+  params_.AVG = 0.5;
 
   LoadParams("controller_config.txt");
 }
@@ -68,8 +76,14 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
+  
+
+  double rtt = (double)(timestamp_ack_received - send_timestamp_acked);
+  /*fprintf(stdout, "%lu", timestamp_ack_received);*/
+  update_rtt_stats(rtt);
+
   /* Default: take no action */
-  w_size_ = w_size_ + params_.AI / max(w_size_, 1.0);
+  w_size_ = w_size_ + (1/rtt_ratio_)*(params_.AI / max(w_size_, 1.0));
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
@@ -89,4 +103,23 @@ unsigned int Controller::timeout_ms( void )
 void Controller::packet_timed_out(void)
 {
   w_size_ = w_size_ - params_.MD * w_size_;
+}
+
+void Controller::update_rtt_stats(const double rtt)
+{
+  if (rtt_min_ > rtt){
+    rtt_min_ = rtt;
+  }
+  if (rtt_max_ < rtt){
+    rtt_max_ = rtt;
+  }
+
+  if (rtt_avg_ == 0){
+    rtt_avg_ = rtt;
+  }
+  else {
+    rtt_avg_ = params_.AVG*rtt + (1-params_.AVG)*rtt_avg_;
+  }
+  rtt_ratio_ = rtt/rtt_min_;
+
 }
