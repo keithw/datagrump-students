@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+enum ControllerType { CONSTCWND, AIMD };
+
 /* Flow controller interface */
 
 class Controller
@@ -12,6 +14,9 @@ private:
 
   /* Add member variables here */
 	unsigned int cwnd;
+	ControllerType type;
+	double ai_coeff;
+	double md_coeff;
 
 public:
   /* Public interface for the flow controller */
@@ -19,7 +24,7 @@ public:
      the call site as well (in datagrump-sender.cc) */
 
   /* Default constructor */
-  Controller( const bool debug, const unsigned int cwnd );
+  Controller( const bool debug, const unsigned int cwnd, const ControllerType type );
 
   /* Get current window size, in packets */
   unsigned int window_size( void );
@@ -36,6 +41,9 @@ public:
 
   /* How long to wait if there are no acks before sending one more packet */
   unsigned int timeout_ms( void );
+
+	/* Setup AIMD co-efficients */
+	void setup_aimd(double ai_coeff, double md_coeff);
 };
 
 #endif
