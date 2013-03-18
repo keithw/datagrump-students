@@ -37,7 +37,7 @@ int main( int argc, char *argv[] )
     uint64_t next_ack_expected = 0;
 
     /* Initialize flow controller */
-    Controller controller( debug );
+    Controller controller( debug, 1 );
 
     /* Loop */
     while ( 1 ) {

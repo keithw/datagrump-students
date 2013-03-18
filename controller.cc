@@ -7,7 +7,7 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug )
+  : debug_( debug ), cwnd(cwnd)
 {
 }
 
@@ -15,14 +15,14 @@ Controller::Controller( const bool debug )
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
-  int the_window_size = 1;
+  // int the_window_size = 1;
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
-	     timestamp(), the_window_size );
+	     timestamp(), cwnd );
   }
 
-  return the_window_size;
+  return cwnd;
 }
 
 /* A packet was sent */

@@ -11,6 +11,7 @@ private:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
+	unsigned int cwnd;
 
 public:
   /* Public interface for the flow controller */
@@ -18,7 +19,7 @@ public:
      the call site as well (in datagrump-sender.cc) */
 
   /* Default constructor */
-  Controller( const bool debug );
+  Controller( const bool debug, const unsigned int cwnd );
 
   /* Get current window size, in packets */
   unsigned int window_size( void );
