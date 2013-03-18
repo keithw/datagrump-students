@@ -12,7 +12,7 @@ using namespace Network;
 int main( int argc, char *argv[] )
 {
   /* check arguments */
-  bool debug = false;
+  bool debug = true;
   if ( argc == 4 && string( argv[ 3 ] ) == "debug" ) {
     debug = true;
   } else if ( argc == 3 ) {

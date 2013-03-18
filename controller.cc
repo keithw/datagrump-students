@@ -4,14 +4,14 @@
 #include "timestamp.hh"
 
 
-#define DELAY_THRESH 10
+#define DELAY_THRESH 100
 
 using namespace Network;
 using namespace std;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), the_window_size(1)
+  : debug_( debug ), the_window_size(1), crontolScheme(Controller::ControlSchemes::DELAY)
 {
 }
 
@@ -70,6 +70,10 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
    //delay-triggered scheme
     if(crontolScheme == Controller::ControlSchemes::DELAY){
         const uint64_t delay = recv_timestamp_acked - send_timestamp_acked;
+	if ( debug_ ) {
+	  fprintf( stderr, "At time %lu, delay = %lu.\n",
+		   timestamp(), delay );
+	}
         if(delay < DELAY_THRESH){
             unsigned int max_window_size = 15;
             if (the_window_size + 1 > max_window_size)
