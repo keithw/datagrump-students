@@ -70,11 +70,11 @@ if ( $badstats ) {
   print TEMP "<strong>Warning: scheduling jitter of $badstats ms observed. Did you remember to run <code>./update-git-repos</code>?</strong><br>\n";
 }
 
-# printf TEMP "Score %0.2f \n", log( $avg_throughput / $ninefive );
+printf TEMP "Score %0.2f \n", log( $avg_throughput / $ninefive );
 print TEMP "Delay $ninefive\n";
 printf TEMP "ProtocolThroughput %0.2f\n", $avg_throughput;
 printf TEMP "NetworkCapacity %0.2f\n", $avg_capacity;
-# printf TEMP "Utilization %0.1f%%\n", 100 * $avg_throughput / $avg_capacity;
+printf TEMP "Utilization %0.1f%%\n", 100 * $avg_throughput / $avg_capacity;
 
 close TEMP or die "$!";
 

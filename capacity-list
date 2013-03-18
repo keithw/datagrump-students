@@ -1,0 +1,52 @@
+#!/usr/bin/perl -w
+
+use strict;
+use IO::Uncompress::Gunzip;
+use File::Temp qw{tempdir tempfile};
+
+my ( $filename ) = @ARGV;
+
+my $gz = new IO::Uncompress::Gunzip $filename or die;
+
+my $MS_PER_SLICE = 500;
+my $last_ms = 0;
+my $current_slice = 0;
+my $capacity_sum = 0;
+my $used_sum = 0;
+
+my $output = "";
+
+while ( <$gz> ) {
+  chomp;
+
+  my ( $direction, $ms, $event, $field1, $field2 ) = split /\s+/, $_;
+  die "Bad direction $direction" unless $direction eq "downlink";
+  die "Bad event $event" unless $event eq "underflow" or $event eq "delivery";
+
+  if ( $event eq "delivery" ) {
+    my $bits = $field2 * 8;
+    $used_sum += $bits;
+    $capacity_sum += $bits;
+  } elsif ( $event eq "underflow" ) {
+    my $bits = $field1 * 8;
+    $capacity_sum += $bits;
+  }
+
+  die "nonmonotonic timestamps" unless $ms >= $last_ms;
+  $last_ms = $ms;
+
+  my $new_slice = int( $ms / $MS_PER_SLICE );
+
+  while ( $new_slice != $current_slice ) {
+    # output new slice
+    my $slice_middle = int( ($current_slice + 0.0) * $MS_PER_SLICE );
+    $slice_middle *= 1.e-3;
+    my $capacity_mbps = $capacity_sum * (1.e3 / $MS_PER_SLICE) * 1.e-6;
+    my $used_mbps = $used_sum * (1.e3 / $MS_PER_SLICE) * 1.e-6;
+    $output .= "$slice_middle $capacity_mbps $used_mbps\n";
+    $capacity_sum = $used_sum = 0;
+    $current_slice++;
+  }
+}
+
+printf "%s", $output;
