@@ -3,6 +3,9 @@
 #include "controller.hh"
 #include "timestamp.hh"
 
+
+#define DELAY_THRESH 10
+
 using namespace Network;
 using namespace std;
 
@@ -57,11 +60,30 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 	     send_timestamp_acked, recv_timestamp_acked );
   }
   // additive increase
-  unsigned int max_window_size = 15;
-  if (the_window_size + 1 > max_window_size)
-    the_window_size = max_window_size;
-  else
-    the_window_size += 1;
+    if(crontolScheme == Controller::ControlSchemes::AIMD){
+        unsigned int max_window_size = 15;
+        if (the_window_size + 1 > max_window_size)
+            the_window_size = max_window_size;
+        else
+            the_window_size += 1;
+    }
+   //delay-triggered scheme
+    if(crontolScheme == Controller::ControlSchemes::DELAY){
+        const uint64_t delay = recv_timestamp_acked - send_timestamp_acked;
+        if(delay < DELAY_THRESH){
+            unsigned int max_window_size = 15;
+            if (the_window_size + 1 > max_window_size)
+                the_window_size = max_window_size;
+            else
+                the_window_size += 1;
+        }else{
+            // multiplicative increase
+            if (the_window_size/2 > 1)
+                the_window_size /= 2;
+            else
+                the_window_size = 1;
+        }
+    }
 
 }
 
@@ -73,9 +95,11 @@ unsigned int Controller::timeout_ms( void )
 
 void Controller::packet_timed_out( void)
 {
-  // multiplicative increase
-  if (the_window_size/2 > 1)
-    the_window_size /= 2;
-  else
-    the_window_size = 1;
+    if(crontolScheme == Controller::ControlSchemes::AIMD){
+      // multiplicative increase
+      if (the_window_size/2 > 1)
+          the_window_size /= 2;
+      else
+          the_window_size = 1;
+  }
 }

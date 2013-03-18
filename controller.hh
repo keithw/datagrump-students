@@ -7,15 +7,11 @@
 
 class Controller
 {
-private:
-  bool debug_; /* Enables debugging output */
-
-  /* Add member variables here */
-  unsigned int the_window_size;
 public:
   /* Public interface for the flow controller */
   /* You can change these if you prefer, but will need to change
      the call site as well (in datagrump-sender.cc) */
+    enum ControlSchemes {AIMD, DELAY};
 
   /* Default constructor */
   Controller( const bool debug );
@@ -37,6 +33,14 @@ public:
   unsigned int timeout_ms( void );
 
   void packet_timed_out (void) ; 
+
+private:
+    bool debug_; /* Enables debugging output */
+    
+    /* Add member variables here */
+    unsigned int the_window_size;
+    ControlSchemes crontolScheme;
+
 };
 
 #endif
