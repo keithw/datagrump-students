@@ -18,7 +18,7 @@ unsigned int Controller::window_size( void )
   // int the_window_size = 1;
 
   if ( debug_ ) {
-    fprintf( stderr, "At time %llu, return window_size = %d.\n",
+    fprintf( stderr, "At time %lu, return window_size = %d.\n",
 	     timestamp(), cwnd );
   }
 
@@ -33,7 +33,7 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
 {
   /* Default: take no action */
   if ( debug_ ) {
-    fprintf( stderr, "At time %llu, sent packet %llu.\n",
+    fprintf( stderr, "At time %lu, sent packet %lu.\n",
 	     send_timestamp, sequence_number );
   }
 }
@@ -51,10 +51,10 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   /* Default: take no action */
 
   if ( debug_ ) {
-    fprintf( stderr, "At time %llu, received ACK for packet %llu",
+    fprintf( stderr, "At time %lu, received ACK for packet %lu",
 	     timestamp_ack_received, sequence_number_acked );
 
-    fprintf( stderr, " (sent %llu, received %llu by receiver's clock).\n",
+    fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
 	     send_timestamp_acked, recv_timestamp_acked );
   }
 }
