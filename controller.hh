@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-#include <map>
-
 /* Flow controller interface */
 
 class Controller
@@ -16,10 +14,6 @@ private:
 
   // The current window size.
   double my_window_size_;
-
-  // A multimap of <sequence number, send timestamps> of the outstanding
-  // packets.
-  std::multimap<uint64_t, uint64_t> sent_packet_timestamps_;
 
 public:
   /* Public interface for the flow controller */
