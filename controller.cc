@@ -4,7 +4,10 @@
 #include "timestamp.hh"
 
 
-#define DELAY_THRESH 100
+#define DELAY_THRESH 40
+#define SCALLING_PAR 0.01
+#define MAX_WIN_SIZE 30
+
 
 using namespace Network;
 using namespace std;
@@ -20,8 +23,7 @@ unsigned int Controller::window_size( void )
 {
  /* Default: fixed window size of one outstanding packet */
   if ( debug_ ) {
-    fprintf( stderr, "At time %lu, return window_size = %d.\n",
-	     timestamp(), the_window_size );
+    fprintf( stderr, "-----window_size = %d.\n", the_window_size );
   }
   return the_window_size;
 
@@ -34,9 +36,9 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
                                   /* in milliseconds */
 {
   /* Default: take no action */
-  if ( debug_ ) {
-    fprintf( stderr, "At time %lu, sent packet %lu.\n",
-	     send_timestamp, sequence_number );
+  if ( 0 ) {
+     fprintf( stderr, "At time %lu, sent packet %lu.\n",
+    	     send_timestamp, sequence_number );
   }
 }
 
@@ -52,16 +54,16 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 {
   /* Default: take no action */
 
-  if ( debug_ ) {
-    fprintf( stderr, "At time %lu, received ACK for packet %lu",
-	     timestamp_ack_received, sequence_number_acked );
+  if ( 0 ) {
+     fprintf( stderr, "At time %lu, received ACK for packet %lu",
+     	     timestamp_ack_received, sequence_number_acked );
 
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
-	     send_timestamp_acked, recv_timestamp_acked );
+    	     send_timestamp_acked, recv_timestamp_acked );
   }
   // additive increase
     if(crontolScheme == Controller::ControlSchemes::AIMD){
-        unsigned int max_window_size = 15;
+       unsigned int max_window_size = MAX_WIN_SIZE;
         if (the_window_size + 1 > max_window_size)
             the_window_size = max_window_size;
         else
@@ -71,17 +73,16 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
     if(crontolScheme == Controller::ControlSchemes::DELAY){
         const uint64_t delay = recv_timestamp_acked - send_timestamp_acked;
 	if ( debug_ ) {
-	  fprintf( stderr, "At time %lu, delay = %lu.\n",
-		   timestamp(), delay );
+	  fprintf( stderr, "-----------------  delay = %lu.\n", delay );
 	}
         if(delay < DELAY_THRESH){
-            unsigned int max_window_size = 15;
+            unsigned int max_window_size = MAX_WIN_SIZE;
             if (the_window_size + 1 > max_window_size)
                 the_window_size = max_window_size;
             else
                 the_window_size += 1;
         }else{
-            // multiplicative increase
+             // multiplicative increase
             if (the_window_size/2 > 1)
                 the_window_size /= 2;
             else
@@ -99,11 +100,14 @@ unsigned int Controller::timeout_ms( void )
 
 void Controller::packet_timed_out( void)
 {
-    if(crontolScheme == Controller::ControlSchemes::AIMD){
+    if(debug_){
+      fprintf(stderr, "!!!! ----- packet timed out");
+    }
+    //if(crontolScheme == Controller::ControlSchemes::AIMD){
       // multiplicative increase
       if (the_window_size/2 > 1)
           the_window_size /= 2;
       else
           the_window_size = 1;
-  }
+      //}
 }
