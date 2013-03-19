@@ -83,7 +83,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   update_rtt_stats(rtt);
 
   /* Default: take no action */
-  w_size_ = w_size_ + (pow((1/rtt_ratio_),2)-0.2)*(params_.AI / max(w_size_, 1.0));
+  w_size_ = max(w_size_ + (pow((1/rtt_ratio_),2)-0.5)*(params_.AI / max(w_size_, 1.0)),1.0);
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
