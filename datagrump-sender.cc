@@ -5,7 +5,7 @@
 
 #include "socket.hh"
 #include "controller.hh"
-
+#include "delaycontroller.hh"
 using namespace std;
 using namespace Network;
 
@@ -14,9 +14,9 @@ int main( int argc, char *argv[] )
 {
   /* check arguments */
   bool debug = false;
-	unsigned int init_cwnd = 1;
-	double ai_coeff = 0, md_coeff = 0;
-  double delay_threshold = 100;
+	unsigned int init_cwnd = 10;
+	//double ai_coeff = 0, md_coeff = 0;
+  double delay_threshold = 500;
 	ControllerType controllerType = CONSTCWND;
  
   if ( argc == 4 && string( argv[ 3 ] ) == "debug" ) {
@@ -27,13 +27,13 @@ int main( int argc, char *argv[] )
 		if( string( argv[ 4 ]) == "constcwnd" && argc == 6){
 			init_cwnd = strtoul(argv[5], NULL, 0);
 			controllerType = CONSTCWND;
-		} else if ( string( argv[ 4 ]) == "aimd" && argc == 8){
-      init_cwnd = strtoul(argv[5], NULL);
+		} /*else if ( string( argv[ 4 ]) == "aimd" && argc == 8){
+      init_cwnd = strtoul(argv[5], NULL,0);
 			ai_coeff = strtod(argv[6], NULL);
 			md_coeff = strtod(argv[7], NULL);
 			controllerType = AIMD;
-		} else if ( string( argv[ 4 ]) == "delay" && argc == 7){
-      init_cwnd = strtoul(argv[5], NULL);
+		} */else if ( string( argv[ 4 ]) == "delay" && argc == 7){
+      init_cwnd = strtoul(argv[5], NULL,0);
 			delay_threshold = strtod(argv[6], NULL);
 			controllerType = DELAY;
 		} else {
@@ -63,14 +63,17 @@ int main( int argc, char *argv[] )
     uint64_t next_ack_expected = 0;
 
     /* Initialize flow controller */
-    Controller * controller;
-		if(controllerType == CONSTCWND) {
-   	  controller = new Controller( debug, init_cwnd);
-		} else if(controllerType == AIMD) {
+    Controller *controller;
+		if(controllerType == DELAY) {
+          controller = new DelayController( debug, init_cwnd, delay_threshold);
+                } 
+		else{
+	  
+   	  controller = new DelayController( debug, init_cwnd,delay_threshold);
+		}
+		 /*else if(controllerType == AIMD) {;
    	  controller = new AIMDController( debug, init_cwnd, ai_coeff, md_coeff);
-		} else if(controllerType == DELAY) {
-   	  controller = new DelayController( debug, init_cwnd, delay_threshold);
-		} 
+		}*/ 
 
     /* Loop */
     while ( 1 ) {

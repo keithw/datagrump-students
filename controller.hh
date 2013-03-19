@@ -9,7 +9,7 @@ enum ControllerType { CONSTCWND, AIMD, DELAY };
 
 class Controller
 {
-private:
+protected:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
@@ -22,7 +22,7 @@ public:
 
   /* Default constructor */
   Controller( const bool debug, const unsigned int cwnd );
-
+  virtual ~Controller(){};
   /* Get current window size, in packets */
   unsigned int window_size( void );
 
