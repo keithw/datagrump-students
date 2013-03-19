@@ -60,6 +60,7 @@ int main( int argc, char *argv[] )
 	throw string( "poll returned error." );
       } else if ( packet_received == 0 ) { /* timeout */
 	/* send a packet */
+	fprintf(stderr, "timeout: retransmitting packet \n");
 	Packet x( destination, sequence_number++ );
 	sock.send( x );
 	controller.packet_was_sent( x.sequence_number(),
