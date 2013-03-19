@@ -8,7 +8,7 @@ my ( $filename ) = @ARGV;
 
 my $gz = new IO::Uncompress::Gunzip $filename or die;
 
-my $MS_PER_SLICE = 500;
+my $MS_PER_SLICE = 50;
 my $last_ms = 0;
 my $current_slice = 0;
 my $capacity_sum = 0;
@@ -40,7 +40,7 @@ while ( <$gz> ) {
   while ( $new_slice != $current_slice ) {
     # output new slice
     my $slice_middle = int( ($current_slice + 0.0) * $MS_PER_SLICE );
-    $slice_middle *= 1.e-3;
+    # $slice_middle *= 1.e-3;
     my $capacity_mbps = $capacity_sum * (1.e3 / $MS_PER_SLICE) * 1.e-6;
     my $used_mbps = $used_sum * (1.e3 / $MS_PER_SLICE) * 1.e-6;
     $output .= "$slice_middle $capacity_mbps $used_mbps\n";

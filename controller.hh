@@ -2,6 +2,7 @@
 #define CONTROLLER_HH
 
 #include <stdint.h>
+#include <deque>
 
 /* Flow controller interface */
 
@@ -12,6 +13,17 @@ public:
     double AI;
     double MD;
     double AVG;
+    double ack_interval_size;
+  };
+
+  class Ack {
+    public:
+      uint64_t send_;
+      uint64_t recv_;
+      uint64_t acked_;
+    
+      Ack(const uint64_t send, const uint64_t recv, const uint64_t acked) 
+        : send_(send), recv_(recv), acked_(acked) {}
   };
 
 private:
@@ -24,6 +36,10 @@ private:
   double rtt_max_;
   double rtt_avg_;
   double rtt_ratio_;
+
+  uint64_t initial_timestamp_;
+
+  std::deque<Ack> acks_; /* Keeps record of all the acks received recently */
   ConfigParams params_; /* Params for AIMD and beyond. */
   
 public:
