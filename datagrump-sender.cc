@@ -6,6 +6,7 @@
 #include "socket.hh"
 #include "controller.hh"
 #include "aimd.hh"
+#include "delaycontroller.hh"
 
 using namespace std;
 using namespace Network;
@@ -65,15 +66,13 @@ int main( int argc, char *argv[] )
     uint64_t next_ack_expected = 0;
 
     /* Initialize flow controller */
-    Controller * controller;
+    Controller *controller;
 		if(controllerType == CONSTCWND) {
-   	  controller = new Controller( debug, init_cwnd);
-		} else if(controllerType == AIMD) {
+   	  controller = new Controller( debug, init_cwnd );
+		} else if(controllerType == AIMD) {;
    	  controller = new AIMDController( debug, init_cwnd, ai_coeff, md_coeff);
-		}  else if(controllerType == DELAY) {
-   	  controller = new Controller( debug, init_cwnd);
-      printf("%d", delay_threshold);
-   	  //controller = new DelayController( debug, init_cwnd, delay_threshold);
+		} else if(controllerType == DELAY) {
+   	  controller = new DelayController( debug, init_cwnd, delay_threshold);
 		} 
 
     /* Loop */
