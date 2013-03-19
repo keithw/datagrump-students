@@ -14,11 +14,15 @@ Controller::Controller( const bool debug )
   : debug_( debug ), 
     w_size_(40), 
     rtt_last_(0),
-    rtt_min_(100000.0),
+    rtt_min_(-1),
     rtt_max_(0),
     rtt_avg_(0),
     rtt_ratio_(1.0),
     initial_timestamp_(0),
+    last_packet_sent_(0),
+    capacity_estimate_ack_(0.0),
+    capacity_estimate_rtt_(0.0),
+    queue_estimate_(0.0),
     acks_(),
     params_()
 {
@@ -46,8 +50,6 @@ void Controller::LoadParams(const char* filename) {
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
-  /* Default: fixed window size of one outstanding packet */
-
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
 	     timestamp() - initial_timestamp_, (unsigned int) w_size_ );
@@ -62,6 +64,8 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
 				  const uint64_t send_timestamp )
                                   /* in milliseconds */
 {
+  last_packet_sent_ = sequence_number;
+
   if (initial_timestamp_ == 0) {
     initial_timestamp_ = send_timestamp;
   }
@@ -83,33 +87,21 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
-  /* Record ack */
+  double rtt = (double)(timestamp_ack_received - send_timestamp_acked);
+  update_rtt_stats(rtt);
+ 
+  /* Record ack and update estimates */
   acks_.push_back(Ack(send_timestamp_acked, recv_timestamp_acked,
         timestamp_ack_received));
+  update_capacity_stats(timestamp_ack_received, sequence_number_acked);
 
-  uint64_t min_time = timestamp_ack_received - params_.ack_interval_size;
-  while (acks_.size() > 0 &&
-      acks_.front().acked_ < min_time) {
-    acks_.pop_front();
-  }
-
-  /* Capacity estimate heuristic */
-  uint64_t int_time = params_.ack_interval_size;
-  double capacity_estimate = 0;
-  if (int_time != 0) {
-    capacity_estimate = ((double) acks_.size() * 1514 / 1000) / int_time;
-  }
-  fprintf( stderr, "At time %lu, acks %lu, time %lu, capacity_estimate %.2f\n",
-	   timestamp_ack_received - initial_timestamp_, acks_.size(), int_time,
-     capacity_estimate);
-  
+  double capacity_estimate = capacity_estimate_rtt_;
+ 
   if (capacity_estimate > 0.5) {
-    w_size_ = capacity_estimate * 40;
-    fprintf( stderr, "Used capacity estimate. \n");
+    w_size_ = capacity_estimate * rtt_min_;
+    fprintf( stderr, "Used capacity estimate: %.2f. \n", capacity_estimate);
   } else {
-    /* Black magic heuristic*/
-    double rtt = (double)(timestamp_ack_received - send_timestamp_acked);
-    update_rtt_stats(rtt);
+    /* Black magic heuristic */
     w_size_ = max(w_size_ + (pow((1/rtt_ratio_),2)-0.5)*(params_.AI / max(w_size_, 1.0)),1.0);
   }
 
@@ -135,7 +127,9 @@ void Controller::packet_timed_out(void)
 
 void Controller::update_rtt_stats(const double rtt)
 {
-  if (rtt_min_ > rtt){
+  rtt_last_ = rtt;
+
+  if (rtt_min_ == -1 || rtt_min_ > rtt){
     rtt_min_ = rtt;
   }
   if (rtt_max_ < rtt){
@@ -149,4 +143,24 @@ void Controller::update_rtt_stats(const double rtt)
     rtt_avg_ = params_.AVG*rtt + (1-params_.AVG)*rtt_avg_;
   }
   rtt_ratio_ = rtt/rtt_min_;
+}
+
+/* Update capacity estimates after ack received */
+void Controller::update_capacity_stats(
+    const uint64_t timestamp, const uint64_t current_ack) {
+  uint64_t min_time = timestamp - params_.ack_interval_size;
+  while (acks_.size() > 0 && acks_.front().acked_ < min_time) {
+    acks_.pop_front();
+  }
+
+  /* Capacity estimate heuristic */
+  capacity_estimate_ack_ = ((double) acks_.size() * 1514 / 1000) /
+    params_.ack_interval_size;
+  
+  capacity_estimate_rtt_ = (last_packet_sent_ - current_ack) / rtt_last_; 
+  queue_estimate_ = (rtt_last_ - rtt_min_) * capacity_estimate_ack_;
+
+  fprintf( stderr, "At time %lu, acks %lu, capacity_estimate_ack %.2f, capacity_estimate_rtt %.2f, queue %.2f \n",
+	   timestamp - initial_timestamp_, acks_.size(),
+     capacity_estimate_ack_, capacity_estimate_rtt_, queue_estimate_);
 }
