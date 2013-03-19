@@ -6,8 +6,8 @@
 using namespace Network;
 
 /* Default constructor */
-Controller::Controller( const bool debug, const unsigned int cwnd, const ControllerType(type) )
-  : debug_( debug ), cwnd(cwnd), type(type), ai_coeff(0), md_coeff(0)
+Controller::Controller( const bool debug, const unsigned int cwnd )
+  : debug_( debug ), cwnd(cwnd)
 {
 }
 
@@ -65,10 +65,3 @@ unsigned int Controller::timeout_ms( void )
   return 1000; /* timeout of one second */
 }
 
-/* Setup AIMD */
-void Controller::setup_aimd( double ai_coeff, double md_coeff)
-{
-	this->ai_coeff = ai_coeff;
-	this->md_coeff = md_coeff;
-	return;
-}
