@@ -28,13 +28,14 @@ unsigned int Controller::window_size( void )
 /* A packet was sent */
 void Controller::packet_was_sent( const uint64_t sequence_number,
 				  /* of the sent packet */
-				  const uint64_t send_timestamp )
+				  const uint64_t send_timestamp, bool is_retransmit )
                                   /* in milliseconds */
 {
   /* Default: take no action */
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, sent packet %lu.\n",
 	     send_timestamp, sequence_number );
+    fprintf( fopen("/dev/null", "w"), "%d", is_retransmit );
   }
 }
 

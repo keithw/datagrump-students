@@ -9,7 +9,7 @@ enum ControllerType { CONSTCWND, AIMD, DELAY };
 
 class Controller
 {
-private:
+protected:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
@@ -23,15 +23,18 @@ public:
   /* Default constructor */
   Controller( const bool debug, const unsigned int cwnd );
 
+  /* Virtual Destructor for inheritance*/
+  virtual ~Controller(){};
+
   /* Get current window size, in packets */
   unsigned int window_size( void );
 
   /* A packet was sent */
-  void packet_was_sent( const uint64_t sequence_number,
-			const uint64_t send_timestamp );
+  virtual void packet_was_sent( const uint64_t sequence_number,
+			const uint64_t send_timestamp, bool is_retransmit );
 
   /* An ack was received */
-  void ack_received( const uint64_t sequence_number_acked,
+  virtual void ack_received( const uint64_t sequence_number_acked,
 		     const uint64_t send_timestamp_acked,
 		     const uint64_t recv_timestamp_acked,
 		     const uint64_t timestamp_ack_received );

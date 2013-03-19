@@ -5,6 +5,7 @@
 
 #include "socket.hh"
 #include "controller.hh"
+#include "aimd.hh"
 
 using namespace std;
 using namespace Network;
@@ -14,10 +15,11 @@ int main( int argc, char *argv[] )
 {
   /* check arguments */
   bool debug = false;
-	unsigned int init_cwnd = 1;
-	double ai_coeff = 0, md_coeff = 0;
-  double delay_threshold = 100;
-	ControllerType controllerType = CONSTCWND;
+	unsigned int init_cwnd = 10;
+	double ai_coeff = 1, md_coeff = 3;
+  int delay_threshold = 100;
+	ControllerType controllerType = AIMD;
+//  FILE* cwndlog = fopen("/tmp/cwndlog","w");
  
   if ( argc == 4 && string( argv[ 3 ] ) == "debug" ) {
     debug = true;
@@ -28,12 +30,12 @@ int main( int argc, char *argv[] )
 			init_cwnd = strtoul(argv[5], NULL, 0);
 			controllerType = CONSTCWND;
 		} else if ( string( argv[ 4 ]) == "aimd" && argc == 8){
-      init_cwnd = strtoul(argv[5], NULL);
+      init_cwnd = strtoul(argv[5], NULL, 0);
 			ai_coeff = strtod(argv[6], NULL);
 			md_coeff = strtod(argv[7], NULL);
 			controllerType = AIMD;
 		} else if ( string( argv[ 4 ]) == "delay" && argc == 7){
-      init_cwnd = strtoul(argv[5], NULL);
+      init_cwnd = strtoul(argv[5], NULL, 0);
 			delay_threshold = strtod(argv[6], NULL);
 			controllerType = DELAY;
 		} else {
@@ -68,8 +70,10 @@ int main( int argc, char *argv[] )
    	  controller = new Controller( debug, init_cwnd);
 		} else if(controllerType == AIMD) {
    	  controller = new AIMDController( debug, init_cwnd, ai_coeff, md_coeff);
-		} else if(controllerType == DELAY) {
-   	  controller = new DelayController( debug, init_cwnd, delay_threshold);
+		}  else if(controllerType == DELAY) {
+   	  controller = new Controller( debug, init_cwnd);
+      printf("%d", delay_threshold);
+   	  //controller = new DelayController( debug, init_cwnd, delay_threshold);
 		} 
 
     /* Loop */
@@ -82,7 +86,7 @@ int main( int argc, char *argv[] )
 				Packet x( destination, sequence_number++ );
 				sock.send( x );
 				controller->packet_was_sent( x.sequence_number(),
-				x.send_timestamp() );
+				x.send_timestamp(), false );
 			}
 			
 			/* Wait for acknowledgement or timeout */
@@ -96,7 +100,8 @@ int main( int argc, char *argv[] )
 				Packet x( destination, sequence_number++ );
 				sock.send( x );
 				controller->packet_was_sent( x.sequence_number(),
-							    x.send_timestamp() );
+							    x.send_timestamp(), true );
+//        fprintf( cwndlog, "MD %d", controller->window_size());
 			} else {
 				/* we got an acknowledgment */
 				Packet ack = sock.recv();
@@ -110,6 +115,7 @@ int main( int argc, char *argv[] )
 				ack.ack_send_timestamp(),
 				ack.ack_recv_timestamp(),
 				ack.recv_timestamp() );
+//        fprintf( cwndlog, "AI %d", controller->window_size());
       }
     }
   } catch ( const string & exception ) {
