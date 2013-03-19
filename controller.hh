@@ -11,11 +11,12 @@ private:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
-  double cwnd;
+  uint64_t first_recv_time;
+  uint64_t cur_pkt_count;
+  uint64_t last_tick_time;
+  double throughput;
 
-  double rtt;
-
-  uint64_t last_ack_received;
+  void update_estimate(uint64_t cur_time);
 
 public:
   /* Public interface for the flow controller */
