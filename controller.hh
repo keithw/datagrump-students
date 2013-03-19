@@ -16,7 +16,7 @@ private:
   uint64_t last_tick_time;
   double throughput;
 
-  void update_estimate(uint64_t cur_time);
+  void update_estimate(uint64_t cur_time, uint64_t recent_delay);
 
 public:
   /* Public interface for the flow controller */

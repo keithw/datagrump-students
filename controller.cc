@@ -6,9 +6,9 @@
 using namespace Network;
 
 #define TICK_LEN (25)
-#define TIMEOUT_MS TICK_LEN
+#define TIMEOUT_MS (100)
 #define EWMA_GAIN (.2)
-#define DESIRED_DELAY (70)
+#define DESIRED_DELAY (60)
 #define STARTING_WINDOW (0.85 * DESIRED_DELAY)
 
 /* Default constructor */
@@ -22,7 +22,7 @@ Controller::Controller(const bool debug)
   fprintf(stderr, "Using forecast model!\n");
 }
 
-void Controller::update_estimate(uint64_t cur_time) {
+void Controller::update_estimate(uint64_t cur_time, uint64_t recent_delay) {
   // If we've stepped into a new tick.
   if (cur_time - last_tick_time >= TICK_LEN) {
     uint64_t threshold_time = (cur_time - (cur_time % TICK_LEN)) - TICK_LEN;
@@ -30,11 +30,21 @@ void Controller::update_estimate(uint64_t cur_time) {
         (threshold_time >= first_recv_time)) {
       // Update throughput
       double recent_throughput = 1.0*cur_pkt_count / TICK_LEN;
+      if (recent_delay != 0) {
+        if (recent_throughput < 1.0 / recent_delay) {
+          recent_throughput = 1.0 / recent_delay;
+        }
+      }
       // Just use recent_throughput if not initialized.
       if (throughput < 0) {
         throughput = recent_throughput;
       } else {
         throughput = (1-EWMA_GAIN)*throughput + EWMA_GAIN*recent_throughput;
+        if (recent_delay != 0) {
+          if (throughput < 1.0 / recent_delay) {
+            throughput = 1.0 / recent_delay;
+          }
+        }
       }
     }
 
@@ -75,7 +85,7 @@ void Controller::packet_was_sent(
     fprintf(stderr, "At time %lu, sent packet %lu.\n",
 	     send_timestamp, sequence_number);
   }
-  update_estimate(send_timestamp);
+  update_estimate(send_timestamp, 0);
 }
 
 /* An ack was received */
@@ -99,7 +109,7 @@ void Controller::ack_received(const uint64_t sequence_number_acked,
   if (first_recv_time == 0) {
     first_recv_time = timestamp_ack_received;
   }
-  update_estimate(timestamp_ack_received);
+  update_estimate(timestamp_ack_received, recv_timestamp_acked - send_timestamp_acked);
   // It's important that we do this after update_estimate!
   cur_pkt_count++;
 }
