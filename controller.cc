@@ -8,8 +8,8 @@ using namespace Network;
 #define TICK_LEN (25)
 #define TIMEOUT_MS (100)
 #define EWMA_GAIN (.2)
-#define DESIRED_DELAY (60)
-#define STARTING_WINDOW (0.85 * DESIRED_DELAY)
+#define TAU (60)
+#define STARTING_WINDOW (0.85 * TAU)
 
 /* Default constructor */
 Controller::Controller(const bool debug)
@@ -63,7 +63,7 @@ unsigned int Controller::window_size(void)
     the_window_size = STARTING_WINDOW;
   } else {
     // We want W = TP * DELAY
-    the_window_size = (unsigned int)(throughput * DESIRED_DELAY);
+    the_window_size = (unsigned int)(throughput * TAU);
   }
 
   if (debug_) {
