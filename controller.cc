@@ -29,6 +29,7 @@ unsigned int Controller::window_size( void )
 	     timestamp(), the_window_size );
   }
   //fprintf( stderr, "asdfasfd",);
+  if (the_window_size == 0) { the_window_size = 10; }
   return the_window_size;
 }
 
@@ -89,7 +90,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
     //
   }
 
-  if (avg_rtt > 100) {
+  if (avg_rtt > 300) {
     // multiplicative decrease
     the_window_size /= 2;
   } else {
