@@ -12,8 +12,9 @@ private:
 
   /* Add member variables here */
   float the_window_size = 12.0;
-  float ai = 1.0;
-  float md = 0.1;
+  float ai = 3.0;
+  float md = 0.5;
+  float the_timeout = 100;
 
 public:
   /* Public interface for the flow controller */
@@ -25,9 +26,6 @@ public:
 
   /* Get current window size, in packets */
   unsigned int window_size( void );
-
-  /* Got a timeout */
-  void timeout();
 
   /* A packet was sent */
   void packet_was_sent( const uint64_t sequence_number,

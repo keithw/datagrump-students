@@ -1,0 +1,15 @@
+timeout 1000
+ai 1.0
+md .1
+throughput 4.78
+delay 895
+log -5.23
+
+
+timeout 100
+ai 1.0
+md .1
+throughput 2.82
+delay 125
+log score -3.79
+

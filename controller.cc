@@ -26,13 +26,6 @@ unsigned int Controller::window_size( void )
   return the_window_size;
 }
 
-/* Timeout */
-
-void Controller::timeout()
-{
-    the_window_size = fmax(floor(the_window_size*md),1);
-    
-}
 
 /* A packet was sent */
 void Controller::packet_was_sent( const uint64_t sequence_number,
@@ -57,7 +50,14 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
-  the_window_size = the_window_size + ai/the_window_size;
+  float throughput = 1500/(timestamp_ack_received - send_timestamp_acked);
+  fprintf(stderr, "The throughput is %f", throughput);
+  if (throughput * .01 * timeout_ms() > the_window_size){
+      the_window_size = the_window_size + ai/the_window_size;
+  } else {
+      the_window_size = throughput * .01 * timeout_ms();
+  }
+
   /* Default: take no action */
 
   if ( debug_ ) {
@@ -72,5 +72,5 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 1000; /* timeout of one second */
+  return the_timeout; /* timeout of one second */
 }
