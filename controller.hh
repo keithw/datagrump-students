@@ -14,7 +14,7 @@ public:
     enum ControlSchemes {AIMD, DELAY};
 
   /* Default constructor */
-  Controller( const bool debug );
+  Controller( const bool debug, unsigned int max_window_size, unsigned int max_delay );
 
   /* Get current window size, in packets */
   unsigned int window_size( void );
@@ -39,7 +39,9 @@ private:
     
     /* Add member variables here */
     unsigned int the_window_size;
-    ControlSchemes crontolScheme;
+    unsigned int max_window_size_;
+    unsigned int max_delay_;
+    ControlSchemes control_scheme;
 
 };
 

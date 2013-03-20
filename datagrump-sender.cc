@@ -13,8 +13,28 @@ int main( int argc, char *argv[] )
 {
   /* check arguments */
   bool debug = true;
-  if ( argc == 4 && string( argv[ 3 ] ) == "debug" ) {
-    debug = true;
+  unsigned int max_window_size = 1;
+  unsigned int max_delay = 1000;
+  if (argc > 3) {
+    for (int i = 0; i < argc; i++) {
+      if (string(argv[i]) == "debug") {
+	debug = true;
+      } else if (string(argv[i]) == "-maxwindow") {
+	if (i+1 == argc) {
+	  fprintf(stderr, "Not enough or invalid arguments, please try again.\n");
+	  exit(1);
+	} else {
+	  max_window_size = (unsigned int)atoi(argv[i+1]);
+	}
+      } else if (string(argv[i]) == "-maxdelay") {
+	if (i+1 == argc) {
+	  fprintf(stderr, "Not enough or invalid arguments, please try again.\n");
+	  exit(1);
+	} else {
+	  max_delay = (unsigned int)atoi(argv[i+1]);
+	}
+      }
+    }
   } else if ( argc == 3 ) {
     /* do nothing */
   } else {
@@ -37,7 +57,7 @@ int main( int argc, char *argv[] )
     uint64_t next_ack_expected = 0;
 
     /* Initialize flow controller */
-    Controller controller( debug );
+    Controller controller( debug , max_window_size, max_delay);
 
     /* Loop */
     while ( 1 ) {
