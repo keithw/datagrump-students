@@ -20,8 +20,7 @@ Controller::Controller( const bool debug )
     rtt_ratio_(1.0),
     initial_timestamp_(0),
     last_packet_sent_(0),
-    capacity_estimate_ack_(0.0),
-    capacity_estimate_rtt_(0.0),
+    capacity_estimate_(0.0),
     queue_estimate_(0.0),
     acks_(),
     params_()
@@ -94,12 +93,10 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   acks_.push_back(Ack(send_timestamp_acked, recv_timestamp_acked,
         timestamp_ack_received));
   update_capacity_stats(timestamp_ack_received, sequence_number_acked);
-
-  double capacity_estimate = capacity_estimate_rtt_;
  
-  if (capacity_estimate > 0.5) {
-    w_size_ = capacity_estimate * rtt_min_;
-    fprintf( stderr, "Used capacity estimate: %.2f. \n", capacity_estimate);
+  if (capacity_estimate_ > 0.5) {
+    w_size_ = (capacity_estimate_ - queue_estimate_ / 100) * rtt_min_;
+    fprintf( stderr, "Used capacity estimate: %lu. \n", sequence_number_acked - last_packet_sent_);
   } else {
     /* Black magic heuristic */
     w_size_ = max(w_size_ + (pow((1/rtt_ratio_),2)-0.5)*(params_.AI / max(w_size_, 1.0)),1.0);
@@ -154,13 +151,10 @@ void Controller::update_capacity_stats(
   }
 
   /* Capacity estimate heuristic */
-  capacity_estimate_ack_ = ((double) acks_.size() * 1514 / 1000) /
-    params_.ack_interval_size;
-  
-  capacity_estimate_rtt_ = (last_packet_sent_ - current_ack) / rtt_last_; 
-  queue_estimate_ = (rtt_last_ - rtt_min_) * capacity_estimate_ack_;
+  capacity_estimate_ = ((double) acks_.size()) / params_.ack_interval_size;
+  queue_estimate_ = (rtt_last_ - rtt_min_) * capacity_estimate_;
 
-  fprintf( stderr, "At time %lu, acks %lu, capacity_estimate_ack %.2f, capacity_estimate_rtt %.2f, queue %.2f \n",
+  fprintf( stderr, "At time %lu, acks %lu, capacity_ %.2f, %.2f, queue %.2f \n",
 	   timestamp - initial_timestamp_, acks_.size(),
-     capacity_estimate_ack_, capacity_estimate_rtt_, queue_estimate_);
+     capacity_estimate_ack_, queue_estimate_);
 }
