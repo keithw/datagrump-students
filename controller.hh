@@ -11,7 +11,8 @@ private:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
-
+  int trimRunmean(const uint64_t tstamp);
+  int getRmsize(const uint64_t tstamp, double res);
 public:
   /* Public interface for the flow controller */
   /* You can change these if you prefer, but will need to change
@@ -25,16 +26,35 @@ public:
 
   /* A packet was sent */
   void packet_was_sent( const uint64_t sequence_number,
-			const uint64_t send_timestamp );
+                        const uint64_t send_timestamp );
 
   /* An ack was received */
   void ack_received( const uint64_t sequence_number_acked,
-		     const uint64_t send_timestamp_acked,
-		     const uint64_t recv_timestamp_acked,
-		     const uint64_t timestamp_ack_received );
+                     const uint64_t send_timestamp_acked,
+                     const uint64_t recv_timestamp_acked,
+                     const uint64_t timestamp_ack_received );
 
   /* How long to wait if there are no acks before sending one more packet */
   unsigned int timeout_ms( void );
+
+
+
+  double cwind;
+  std::queue<int>  runmean;
+  std::list<uint64_t> packetBalance;
+  double resolution;
+  double rtt;
+  double rttsum;
+  double rttn;
+  double ackTracker ;
+  double ackLastDelta ;
+  uint64_t lastAck ;
+  double rho;
+  unsigned int recovery ;
+  unsigned int lastPB ;
+  unsigned int lastCW ;
+  uint64_t start_time ;
+
 };
 
 #endif

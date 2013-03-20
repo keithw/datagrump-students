@@ -80,7 +80,7 @@ int main( int argc, char *argv[] )
         unsigned int window_size = controller.window_size();
         if (window_size == 0) sleep(10);
         mx = 0;
-        while ( sequence_number - next_ack_expected < window_size ) {
+        while ( controller.packetBalance.size() < window_size ) {
           Packet x( destination, sequence_number++ );
           sock.send( x );
           controller.packet_was_sent( x.sequence_number(),

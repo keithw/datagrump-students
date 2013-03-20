@@ -8,30 +8,27 @@
 #include "packet.hh"
 
 using namespace Network;
-double cwind;
-std::queue<int>  runmean;
-std::list<uint64_t> packetBalance;
-double resolution = 200;
-double rtt=40;
-double rttsum=400;
-double rttn=10;
-double ackTracker = 0;
-double ackLastDelta = 0;
-uint64_t lastAck = 0;
-double rho = 0.25;
-unsigned int recovery = 0;
-unsigned int lastPB = 0;
-unsigned int lastCW = 0;
 //FILE *fsend = fopen("tmp/send.txt", "w");
 //FILE *fget = fopen("tmp/get.txt", "w");
 FILE *fsend = stderr;
 FILE *fget = stderr;
 
-uint64_t start_time = 0;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug )
+  : debug_( debug ),
+    resolution(200),
+    rtt(40),
+    rttsum(400),
+    rttn(10),
+    ackTracker(0.0),
+    ackLastDelta(0.0),
+    lastAck(0),
+    rho(2.5),
+    recovery(0),
+    lastPB(0),
+    lastCW(0),
+    start_time(0)
 {
   cwind = 0.001;
   start_time = timestamp();
@@ -40,7 +37,7 @@ Controller::Controller( const bool debug )
 
 
 
-int trimRunmean(const uint64_t tstamp) {
+int Controller::trimRunmean(const uint64_t tstamp) {
   while(runmean.size()>0 && (tstamp-runmean.front())>(resolution)){
     fprintf( stderr, "pop %i, timediff %lu \n",
        runmean.front(),tstamp-runmean.front());
@@ -50,7 +47,7 @@ int trimRunmean(const uint64_t tstamp) {
   return rmsize;
 }
 
-int getRmsize(const uint64_t tstamp, double res) {
+int Controller::getRmsize(const uint64_t tstamp, double res) {
   int sz = runmean.size();
   while(runmean.size()>0 && (tstamp-runmean.front())>(res))
     --sz;
