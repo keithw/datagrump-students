@@ -19,6 +19,15 @@ private:
   uint64_t timeout_time;
 
   int packets_in_queue;
+  int packet_counter;
+  int time_cutoff;
+  int measured_rate;
+  int rate_difference;
+  int skip_counter;
+  uint64_t last_receive_time;
+  int64_t packet_gap;
+  int64_t rttmin;
+  const uint64_t time_interval = 100;
 
 public:
   /* Public interface for the flow controller */
