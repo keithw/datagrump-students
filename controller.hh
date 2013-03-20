@@ -1,7 +1,8 @@
 #ifndef CONTROLLER_HH
 #define CONTROLLER_HH
 
-#include <stdint.h>
+#include <cstdint>
+#include <unordered_map>
 
 /* Flow controller interface */
 
@@ -11,6 +12,22 @@ private:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
+  unsigned int cwnd;
+  unsigned int count;
+
+  // Retransmit timer calculation used from CAC by Jacobson & Karels
+  uint64_t sa;
+  uint64_t sv;
+  uint64_t rto;
+
+  uint64_t timeMostRecentAck;
+  uint64_t previousRTT;
+  uint64_t previousSA;
+  // Map packet sequence numbers to sent timestamp
+  std::unordered_map<uint64_t, uint64_t> sendTimestamps;
+
+  const unsigned int RTT_THRESHOLD_MS = 130;
+  const unsigned int CWND_MIN = 1;
 
 public:
   /* Public interface for the flow controller */

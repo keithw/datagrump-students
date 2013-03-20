@@ -7,7 +7,7 @@ objects = socket.o address.o packet.o int64.o timestamp.o util.o controller.o
 executables = datagrump-sender datagrump-receiver
 
 CXX = g++
-CXXFLAGS = -g -O3 -std=c++0x -ffast-math -pedantic -Werror -Wall -Wextra \
+CXXFLAGS = -g -O3 -std=c++11 -ffast-math -pedantic -Werror -Wall -Wextra \
 	-Weffc++ -fno-default-inline -pipe
 LIBS = -lm -lrt
 
@@ -25,7 +25,7 @@ datagrump-receiver: datagrump-receiver.o $(objects)
 -include depend
 
 depend: $(source)
-	$(CXX) $(INCLUDES) -MM $(source) > depend
+	$(CXX) -std=c++11 $(INCLUDES) -MM $(source) > depend
 
 .PHONY: clean
 clean:
