@@ -15,6 +15,18 @@ private:
   /* Add member variables here */
 //////// std:: map<uint64_t,uint64_t> packet_sent_times;
   float curr_window_size;
+  
+  uint64_t last_window_size_change;
+  bool sent_once;
+  bool in_initialization = true;
+  bool in_getting_first_pkts_phase = true;
+  uint64_t prev_delivery_time;
+  uint64_t prev_delivery_times[10];
+  size_t count_prev_pkts = 0;
+  uint64_t curr_delivery_times[10];
+  size_t count_curr_pkts = 0;
+  size_t num_pkts_to_update = 10;
+  size_t count_pkts_since_last_update;
 
 public:
   /* Public interface for the flow controller */
