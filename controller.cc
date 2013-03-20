@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <cstdlib>
+#include <ctime>
 
 #include "controller.hh"
 #include "timestamp.hh"
@@ -7,15 +9,20 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug )
+  : debug_( debug ), cwnd(1), reduced(0), thres(50), table{0}, pointer_table(0),min_table(0)
 {
+	std::srand(std::time(0));
+	cwnd = std::rand()%100+1;
+	cwnd = 100;
+	for (int i=0; i<1000;i++)
+		table[i]=50;
 }
 
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
-  int the_window_size = 1;
+  int the_window_size = cwnd;
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
@@ -56,11 +63,115 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
 	     send_timestamp_acked, recv_timestamp_acked );
+
+	int diff = recv_timestamp_acked - send_timestamp_acked;
+	fprintf( stderr, "the difference is %d.\n", diff);
+	cwnd_from_delay2(diff);
   }
+
 }
 
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 1000; /* timeout of one second */
+  return 100; /* timeout of one second */
+}
+
+void Controller::cwnd_from_delay( int diff )
+{
+	if (diff>1000)
+		cwnd = cwnd;
+	else if (diff > 800 && reduced<=6){
+		cwnd = cwnd/2;
+		reduced=7;
+	}else if (diff > 600 && reduced<=5){
+		cwnd = cwnd/2;
+		reduced=6;
+	}else if (diff > 400 && reduced<=4){
+		cwnd = cwnd/2;
+		reduced=5;
+	}else if (diff > 300 && reduced<=3){
+		cwnd = cwnd/2;
+		reduced=4;
+	}else if (diff > 200 && reduced<=2){
+		cwnd = cwnd/2;
+		reduced=3;
+	}else if (diff > 100 && reduced<=1){
+		cwnd = cwnd/2;
+		reduced=2;
+	}else if (diff > 50 && reduced<=0){
+		cwnd = cwnd/2;
+		reduced=1;
+	}else if (diff<50){
+		++cwnd;
+		reduced = 0;
+	}
+
+}
+
+void Controller::add_table( int item)
+{
+	table[pointer_table] = item;
+	min_table = (item>min_table)?item:min_table;
+	++pointer_table;
+	pointer_table = pointer_table%800;
+
+}	
+
+void Controller::cwnd_from_delay2( int item)
+{
+	add_table(item);	
+
+	int smaller = 0;
+	int randitem = 0;
+	for (int i=0 ; i< 100 ;i++){
+		randitem = table[std::rand()%1000];
+		if (item> randitem)
+			++smaller;
+	}
+	fprintf( stderr, "percentile: %d.\n", smaller);
+	if (smaller>80 && reduced<=0){
+		cwnd = cwnd/2;
+		reduced = 1;
+	}else if(smaller<10){
+		++cwnd;
+		reduced = 0;
+	}else if(smaller<30){
+		cwnd+=(double)(1/cwnd);
+		reduced = 0;
+	}
+	if (cwnd == 0)
+			cwnd=1;
+
+}
+
+void Controller::cwnd_from_score( int diff)
+{
+	int item =  (diff * 100)/cwnd;
+	fprintf( stderr, "score: %d.\n", item);
+	add_table(item);	
+
+	int smaller = 0;
+	int randitem = 0;
+	for (int i=0 ; i< 100 ;i++){
+		randitem = table[std::rand()%1000];
+		if (item> randitem)
+			++smaller;
+	}
+	fprintf( stderr, "percentile: %d.\n", smaller);
+	if (smaller>80 && reduced<=0){
+		cwnd = cwnd/2;
+		reduced = 1;
+	}else if(smaller<10){
+		++cwnd;
+		reduced = 0;
+	}else if(smaller<30){
+		cwnd+=(double)(1/cwnd);
+		reduced = 0;
+	}
+	if (cwnd < 1)
+		cwnd=1;
+	if (item >2000)
+		++cwnd;
+
 }

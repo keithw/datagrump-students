@@ -9,8 +9,19 @@ class Controller
 {
 private:
   bool debug_; /* Enables debugging output */
+  double cwnd; //window size
+  int reduced;
+  int thres;
+  int table[1000];
+  int pointer_table;
+  int min_table;
 
   /* Add member variables here */
+
+  void cwnd_from_delay(int diff);
+  void cwnd_from_delay2(int diff);
+  void cwnd_from_score(int diff);
+  void add_table( int item);
 
 public:
   /* Public interface for the flow controller */
