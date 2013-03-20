@@ -1,3 +1,4 @@
+//
 #include <stdio.h>
 #include <math.h>
 #include <queue>
@@ -42,7 +43,7 @@ Controller::Controller( const bool debug )
 int trimRunmean(const uint64_t tstamp) {
   while(runmean.size()>0 && (tstamp-runmean.front())>(resolution)){
     fprintf( stderr, "pop %i, timediff %lu \n",
-	     runmean.front(),tstamp-runmean.front());
+       runmean.front(),tstamp-runmean.front());
     runmean.pop();
   }
   int rmsize = (int)runmean.size();
@@ -53,7 +54,7 @@ int getRmsize(const uint64_t tstamp, double res) {
   int sz = runmean.size();
   while(runmean.size()>0 && (tstamp-runmean.front())>(res))
     --sz;
-  
+
   int rmsize = sz;
   return rmsize;
 }
@@ -94,13 +95,13 @@ unsigned int Controller::window_size( void )
       lastPB = pbs;
       //cwind += 1;
     }
-  }    
-  
+  }
+
   unsigned int cint = (int) floor(cwind + 0.5); // round instead of floor
 
   // if we have a zero congestion window, push it out of this regime
   // if we are just starting up
-  if (cint < 1) 
+  if (cint < 1)
     if ((pbs == 0) || (ackTracker == 0.0))
       cint = 1;
 
@@ -121,35 +122,35 @@ unsigned int Controller::window_size( void )
 
   if ( debug_ ) {
     fprintf( fsend, "@%lu, %d, %.4f, %.4f, %.4f, %u, %.2f, %.1f, %lu\n",
-	     (tStamp - start_time), cint, cwindDL, cwind, ackTracker, pbs, ackLastDelta, rttest, (lastAck > 0) ? (tStamp - lastAck) : 0);
+       (tStamp - start_time), cint, cwindDL, cwind, ackTracker, pbs, ackLastDelta, rttest, (lastAck > 0) ? (tStamp - lastAck) : 0);
   }
   // make sure %change in cint isn't too spiky : causes delays
-  if ((lastCW > 0) && (cint > lastCW)) 
+  if ((lastCW > 0) && (cint > lastCW))
     if ((cint - lastCW)/float(lastCW) > 2)
       cint = 1.25*lastCW;
-  
+
   lastCW = cint;
   return cint;
 }
 
 /* A packet was sent */
 void Controller::packet_was_sent( const uint64_t sequence_number,
-				  /* of the sent packet */
-				  const uint64_t send_timestamp )
+          /* of the sent packet */
+          const uint64_t send_timestamp )
                                   /* in milliseconds */
 {
   /* Default: take no action */
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, sent packet %lu.\n",
-	     send_timestamp, sequence_number );
+       send_timestamp, sequence_number );
   }
-  if ((packetBalance.size() == 0) || (packetBalance.back() < sequence_number)) 
+  if ((packetBalance.size() == 0) || (packetBalance.back() < sequence_number))
     packetBalance.push_back(sequence_number);
   else {
     for (std::list<uint64_t>::iterator it = packetBalance.begin(); it != packetBalance.end(); ++it) {
       if ((*it) > sequence_number) {
-	packetBalance.insert(it, sequence_number);
-	break;
+  packetBalance.insert(it, sequence_number);
+  break;
       }
       if ((*it) == sequence_number) break;
     }
@@ -158,18 +159,18 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
 
 /* An ack was received */
 void Controller::ack_received( const uint64_t sequence_number_acked,
-			       /* what sequence number was acknowledged */
-			       const uint64_t send_timestamp_acked,
-			       /* when the acknowledged packet was sent */
-			       const uint64_t recv_timestamp_acked,
-			       /* when the acknowledged packet was received */
-			       const uint64_t timestamp_ack_received )
+             /* what sequence number was acknowledged */
+             const uint64_t send_timestamp_acked,
+             /* when the acknowledged packet was sent */
+             const uint64_t recv_timestamp_acked,
+             /* when the acknowledged packet was received */
+             const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
   // remove all packets with smaller seq number
   while ((packetBalance.size() > 0) && (packetBalance.front() <= sequence_number_acked))
     packetBalance.pop_front();
-  
+
   if (lastAck == 0) {
     lastAck = recv_timestamp_acked;
   }
@@ -179,7 +180,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
       double d = ackLastDelta / (double)recovery;
       ackTracker -= rho * (ackLastDelta - d);
       for (unsigned int i=1; i< recovery; i++)
-	ackTracker = (1-rho)*ackTracker + rho*d;
+  ackTracker = (1-rho)*ackTracker + rho*d;
       recovery = 0;
     }
     ackLastDelta = (recv_timestamp_acked-lastAck);
@@ -210,15 +211,15 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   //cwind=((double)runmean.size())/resolution*rtt+1;
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
-	     timestamp_ack_received, sequence_number_acked );
+       timestamp_ack_received, sequence_number_acked );
 
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
-	     send_timestamp_acked, recv_timestamp_acked );
+       send_timestamp_acked, recv_timestamp_acked );
     fprintf( fget, "At time %lu, received ACK for packet %lu",
-	     timestamp_ack_received, sequence_number_acked );
+       timestamp_ack_received, sequence_number_acked );
 
     fprintf( fget, " (sent %lu, received %lu by receiver's clock).\n",
-	     send_timestamp_acked, recv_timestamp_acked );
+       send_timestamp_acked, recv_timestamp_acked );
   }
 }
 
@@ -228,4 +229,3 @@ unsigned int Controller::timeout_ms( void )
   if (packetBalance.size() > 10) return (200 * (packetBalance.size() / 5));
   return 50; /* timeout of one second */
 }
-

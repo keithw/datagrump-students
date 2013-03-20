@@ -23,7 +23,7 @@ Packet::Packet( const Address & addr, const uint64_t sequence_number )
 
 /* Make ACK */
 Packet::Packet( const Address & addr, const uint64_t sequence_number,
-		const Packet & other )
+                const Packet & other )
   : addr_( addr ),
     sequence_number_( sequence_number ),
     send_timestamp_(),
@@ -38,7 +38,7 @@ Packet::Packet( const Address & addr, const uint64_t sequence_number,
 
 /* Make incoming packet from wire */
 Packet::Packet( const Address & addr, const string & str,
-		const struct timespec & receive_ts )
+                const struct timespec & receive_ts )
   : addr_( addr ),
     sequence_number_(), send_timestamp_(),
     ack_sequence_number_(), ack_send_timestamp_(),
@@ -62,7 +62,7 @@ Packet::Packet( const Address & addr, const string & str,
 void Packet::set_send_timestamp( void )
 {
   /* Fill in send timestamp */
-  send_timestamp_ = Integer64( timestamp() );  
+  send_timestamp_ = Integer64( timestamp() );
 }
 
 /* Make wire representation of packet */
