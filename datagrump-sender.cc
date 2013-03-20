@@ -13,7 +13,7 @@ int main( int argc, char *argv[] )
 {
   /* check arguments */
   bool debug = true;
-  unsigned int max_window_size = 1;
+  unsigned int max_window_size = 30;
   unsigned int max_delay = 1000;
   if (argc > 3) {
     for (int i = 0; i < argc; i++) {
