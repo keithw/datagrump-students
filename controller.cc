@@ -24,6 +24,7 @@ unsigned int Controller::window_size( void )
   }
 
   //return the_window_size;
+  window = (int) window_float;
   return window;
 }
 
@@ -38,6 +39,9 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
     fprintf( stderr, "At time %lu, sent packet %lu.\n",
 	     send_timestamp, sequence_number );
   }
+  
+  window_float = window_float + (1.0/window);
+  
 }
 
 /* An ack was received */
@@ -69,5 +73,5 @@ unsigned int Controller::timeout_ms( void )
 
 void Controller::timout_detected(void)
 {
-	window = window/2;
+	window_float = window_float/2;
 }
