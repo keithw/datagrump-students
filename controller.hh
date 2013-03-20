@@ -11,7 +11,7 @@ public:
   /* Public interface for the flow controller */
   /* You can change these if you prefer, but will need to change
      the call site as well (in datagrump-sender.cc) */
-    enum ControlSchemes {AIMD, DELAY};
+  enum ControlSchemes {FIXED, AIMD, DELAY};
 
   /* Default constructor */
   Controller( const bool debug, unsigned int max_window_size, unsigned int max_delay );

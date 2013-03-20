@@ -4,10 +4,7 @@
 #include "timestamp.hh"
 
 
-#define DELAY_THRESH 40
 #define SCALLING_PAR 0.0
-#define MAX_WIN_SIZE 30
-
 
 using namespace Network;
 using namespace std;
@@ -15,7 +12,7 @@ using namespace std;
 /* Default constructor */
 Controller::Controller( const bool debug, unsigned int max_window_size, unsigned int max_delay )
   : debug_( debug ), the_window_size(1), max_window_size_(max_window_size), 
-    max_delay_(max_delay), control_scheme(Controller::ControlSchemes::DELAY)
+    max_delay_(max_delay), control_scheme(Controller::ControlSchemes::FIXED)
     
 {
 }
@@ -27,6 +24,8 @@ unsigned int Controller::window_size( void )
   if ( debug_ ) {
     fprintf( stderr, "-----window_size = %d.\n", the_window_size );
   }
+  if (control_scheme == Controller::ControlSchemes::FIXED)
+    return max_window_size_;
   return the_window_size;
 
 }
@@ -71,7 +70,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
             the_window_size += 1;
     }
    //delay-triggered scheme
-    if(control_scheme == Controller::ControlSchemes::DELAY){
+    else if(control_scheme == Controller::ControlSchemes::DELAY){
         const uint64_t delay = recv_timestamp_acked - send_timestamp_acked;
 	if ( debug_ ) {
 	  fprintf( stderr, "-----------------  delay = %lu.\n", delay );
@@ -89,6 +88,10 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
                 the_window_size = 1;
         }
     }
+    else if (control_scheme == Controller::ControlSchemes::FIXED){
+      //do nothing
+      return;
+    }
 
 }
 
@@ -103,6 +106,9 @@ void Controller::packet_timed_out( void)
     if(debug_){
       fprintf(stderr, "!!!! ----- packet timed out");
     }
+    if (control_scheme == Controller::ControlSchemes::FIXED)
+      return;
+
       // multiplicative increase
       if (the_window_size/2 > 1)
           the_window_size /= 2;
