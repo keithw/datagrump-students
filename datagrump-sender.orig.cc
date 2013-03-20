@@ -43,14 +43,15 @@ int main( int argc, char *argv[] )
     while ( 1 ) {
       /* Ask controller: what is the window size? */
       unsigned int window_size = controller.window_size();
-
+      unsigned int ns= 0;
       /* fill up window */
       while ( sequence_number - next_ack_expected < window_size ) {
         Packet x( destination, sequence_number++ );
         sock.send( x );
         controller.packet_was_sent( x.sequence_number(),
                                     x.send_timestamp() );
-        window_size = controller.window_size();
+        if ((++ns) > 5)
+          window_size = controller.window_size();
       }
 
       /* Wait for acknowledgement or timeout */
