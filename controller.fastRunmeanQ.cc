@@ -26,9 +26,11 @@ Controller::Controller( const bool debug )
     recovery(0),
     lastPB(0),
     lastCW(0),
-    start_time(0)
+    packetBalance(std::list<uint64_t>()),
+    start_time(0),
+    cwind(0.001)
 {
-  cwind = 0.001;
+
   start_time = timestamp();
   fprintf( stderr, "startTime %lu\n", start_time);
 }
