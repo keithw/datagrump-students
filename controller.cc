@@ -9,7 +9,7 @@ using namespace Network;
 Controller::Controller( const bool debug )
   : debug_( debug )
 {
-	window = 15;
+	window = 16;
 }
 
 /* Get current window size, in packets */
