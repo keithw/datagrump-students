@@ -1,8 +1,6 @@
 //
 #include <stdio.h>
 #include <math.h>
-#include <queue>
-#include <list>
 #include "controller.hh"
 #include "timestamp.hh"
 #include "packet.hh"
