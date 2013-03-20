@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <math.h>
+#include <iostream>
 
 #include "controller.hh"
 #include "timestamp.hh"
