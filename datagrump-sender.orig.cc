@@ -50,8 +50,10 @@ int main( int argc, char *argv[] )
         sock.send( x );
         controller.packet_was_sent( x.sequence_number(),
                                     x.send_timestamp() );
-        if ((++ns) > 5)
+        if ((++ns) > 5) {
           window_size = controller.window_size();
+          ns = 0;
+        }
       }
 
       /* Wait for acknowledgement or timeout */
