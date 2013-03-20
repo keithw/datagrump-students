@@ -66,3 +66,8 @@ unsigned int Controller::timeout_ms( void )
 {
   return 1000; /* timeout of one second */
 }
+
+void Controller::timout_detected(void)
+{
+	window = window/2;
+}

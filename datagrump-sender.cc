@@ -60,6 +60,8 @@ int main( int argc, char *argv[] )
 	throw string( "poll returned error." );
       } else if ( packet_received == 0 ) { /* timeout */
 	/* send a packet */
+	/* Omid */
+	controller.timout_detected();
 	Packet x( destination, sequence_number++ );
 	sock.send( x );
 	controller.packet_was_sent( x.sequence_number(),

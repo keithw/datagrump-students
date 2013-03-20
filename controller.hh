@@ -33,7 +33,10 @@ public:
 		     const uint64_t send_timestamp_acked,
 		     const uint64_t recv_timestamp_acked,
 		     const uint64_t timestamp_ack_received );
-
+		     
+  void timout_detected();
+  
+  
   /* How long to wait if there are no acks before sending one more packet */
   unsigned int timeout_ms( void );
 };
