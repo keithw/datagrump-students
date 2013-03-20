@@ -9,20 +9,22 @@ using namespace Network;
 Controller::Controller( const bool debug )
   : debug_( debug )
 {
+	window = 15;
 }
 
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
-  int the_window_size = 50;
+  //int the_window_size = 15;
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
 	     timestamp(), the_window_size );
   }
 
-  return the_window_size;
+  //return the_window_size;
+  return window;
 }
 
 /* A packet was sent */
