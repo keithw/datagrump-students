@@ -15,6 +15,9 @@ private:
   // The current window size.
   double my_window_size_;
 
+  // The current RTT measurement.
+  double my_rtt_estimate_;
+
 public:
   /* Public interface for the flow controller */
   /* You can change these if you prefer, but will need to change

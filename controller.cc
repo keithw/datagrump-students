@@ -9,6 +9,8 @@ namespace {
   const double INITIAL_WINDOW = 15.0;
   const int RTT_THRESHOLD = 100;
   const double WINDOW_SIZE_ADJUSTMENT = 0.1;
+
+  const double RTT_ALPHA = 0.8;
 }
 
 using namespace Network;
@@ -16,7 +18,8 @@ using namespace Network;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ),
-    my_window_size_(INITIAL_WINDOW) {
+    my_window_size_(INITIAL_WINDOW),
+    my_rtt_estimate_(RTT_THRESHOLD) {
 }
 
 /* Get current window size, in packets */
@@ -57,10 +60,13 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 	     send_timestamp_acked, recv_timestamp_acked );
   }
 
-  int difference = static_cast<int>(send_timestamp_acked + RTT_THRESHOLD)
-      - static_cast<int>(timestamp_ack_received);
+  double rtt = static_cast<double>(timestamp_ack_received)
+      - static_cast<double>(send_timestamp_acked);
+  my_rtt_estimate_ = rtt * RTT_ALPHA + my_rtt_estimate_ * (1.0 - RTT_ALPHA);
+
+  double difference = RTT_THRESHOLD - my_rtt_estimate_;
   if (difference >= 0) {
-    my_window_size_ += std::min(1.0, difference * 0.002 / my_window_size_);
+    my_window_size_ += std::min(1.0, difference * 0.003 / my_window_size_);
   } else {
     my_window_size_ -= std::min(1.0, -difference * 0.01 / my_window_size_);
   }
