@@ -91,7 +91,7 @@ def run_datagrump(sender, receiver, maxw):
     receiver.waitOutput()
     print "done."
     print "Running datagrump-sender...",
-    sender.sendCmd('/home/ubuntu/datagrump/datagrump-sender 10.0.1.2 9000 debug -maxwindow %d >/tmp/sender-stdout 2>/tmp/sender-stderr &', maxw)
+    sender.sendCmd('/home/ubuntu/datagrump/datagrump-sender 10.0.1.2 9000 debug -maxwindow ' + str(maxw) + ' >/tmp/sender-stdout 2>/tmp/sender-stderr &')
     sender.waitOutput()
     print "done."
 
@@ -128,7 +128,7 @@ def run_cellsim_topology(window):
     #Dump connections
     #dumpNodeConnections(net.hosts)
     #display_routes(net, sender, LTE, receiver)
-
+    print window
     run_datagrump(sender, receiver, window)
 
     run_cellsim(LTE)

@@ -25,6 +25,9 @@ int main( int argc, char *argv[] )
 	  exit(1);
 	} else {
 	  max_window_size = (unsigned int)atoi(argv[i+1]);
+	  fprintf(stderr, "max_window_size = %s\n", argv[i+1]);
+	  fprintf(stderr, "max_window_size = %d\n", max_window_size);
+	  i++;
 	}
       } else if (string(argv[i]) == "-maxdelay") {
 	if (i+1 == argc) {
@@ -32,6 +35,7 @@ int main( int argc, char *argv[] )
 	  exit(1);
 	} else {
 	  max_delay = (unsigned int)atoi(argv[i+1]);
+	  i++;
 	}
       }
     }
