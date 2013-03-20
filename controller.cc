@@ -154,7 +154,7 @@ void Controller::update_capacity_stats(
   capacity_estimate_ = ((double) acks_.size()) / params_.ack_interval_size;
   queue_estimate_ = (rtt_last_ - rtt_min_) * capacity_estimate_;
 
-  fprintf( stderr, "At time %lu, acks %lu, capacity_ %.2f, %.2f, queue %.2f \n",
+  fprintf( stderr, "At time %lu, acks %lu, capacity_ %.2f, queue %.2f, outstanding %lu \n",
 	   timestamp - initial_timestamp_, acks_.size(),
-     capacity_estimate_ack_, queue_estimate_);
+     capacity_estimate_, queue_estimate_, current_ack - last_packet_sent_);
 }

@@ -39,8 +39,7 @@ private:
 
   uint64_t initial_timestamp_;
   uint64_t last_packet_sent_;
-  double capacity_estimate_ack_; /* recent_acks / time_frame */
-  double capacity_estimate_rtt_; /* outstanding_packets / rtt_last */
+  double capacity_estimate_; /* recent_acks / time_frame */
   double queue_estimate_;
 
   std::deque<Ack> acks_; /* Keeps record of all the acks received recently */
