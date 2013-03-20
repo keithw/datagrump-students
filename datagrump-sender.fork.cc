@@ -72,17 +72,21 @@ int main( int argc, char *argv[] )
       }
     } else { //send
       /* Ask controller: what is the window size? */
-      unsigned int window_size = controller.window_size();
+      //unsigned int window_size = controller.window_size();
+      unsigned mx = 0;
       /* Loop */
       while ( 1 ) {
         /* fill up window */
+        unsigned int window_size = controller.window_size();
         if (window_size == 0) sleep(10);
+        mx = 0;
         while ( sequence_number - next_ack_expected < window_size ) {
           Packet x( destination, sequence_number++ );
           sock.send( x );
           controller.packet_was_sent( x.sequence_number(),
                                       x.send_timestamp() );
-          window_size = controller.window_size();
+          ++mx;
+          if (mx > 5) break;
         }
       }
     }
