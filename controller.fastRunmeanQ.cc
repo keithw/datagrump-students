@@ -29,9 +29,8 @@ Controller::Controller( const bool debug )
     recovery(0),
     lastPB(0),
     lastCW(0),
-    start_time(0)
+    start_time(timestamp())
  {
-
   start_time = timestamp();
   fprintf( stderr, "startTime %lu\n", start_time);
 }
