@@ -13,7 +13,6 @@ Controller::Controller( const bool debug )
 {
 	std::srand(std::time(0));
 	cwnd = std::rand()%100+1;
-	cwnd = 100;
 	for (int i=0; i<1000;i++)
 		table[i]=50;
 }
@@ -173,5 +172,4 @@ void Controller::cwnd_from_score( int diff)
 		cwnd=1;
 	if (item >2000)
 		++cwnd;
-
 }
