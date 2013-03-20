@@ -57,10 +57,12 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 	     send_timestamp_acked, recv_timestamp_acked );
   }
 
-  if (timestamp_ack_received <= send_timestamp_acked + RTT_THRESHOLD) {
-    my_window_size_ += std::min(1.0, WINDOW_SIZE_ADJUSTMENT / my_window_size_);
+  int difference = static_cast<int>(send_timestamp_acked + RTT_THRESHOLD)
+      - static_cast<int>(timestamp_ack_received);
+  if (difference >= 0) {
+    my_window_size_ += std::min(1.0, difference * 0.002 / my_window_size_);
   } else {
-    my_window_size_ -= std::min(1.0, WINDOW_SIZE_ADJUSTMENT / my_window_size_);
+    my_window_size_ -= std::min(1.0, -difference * 0.01 / my_window_size_);
   }
 }
 
