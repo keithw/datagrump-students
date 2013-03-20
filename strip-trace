@@ -1,0 +1,36 @@
+#!/bin/bash
+
+tstart=$1
+tend=$2
+first=-1
+
+echo "from $tstart to $tend"
+
+while read number
+do
+  if [ "$number" -ge "$tstart" ] ; then
+    if [ $first -le -1 ] ; then
+      first=$number
+    fi
+    if [ "$number" -le "$tend" ] ; then
+      echo $((number-first))
+    else
+      break
+    fi
+  fi
+done < ../att_downlink.ms > ../att_downlink-$tstart-$tend.ms
+
+while read number
+do
+  if [ "$number" -ge "$tstart" ] ; then
+    if [ $first -le -1 ] ; then
+      first=$number
+    fi
+    if [ "$number" -le "$tend" ] ; then
+      echo $((number-first))
+    else
+      break
+    fi
+  fi
+done < ../att_uplink.ms > ../att_uplink-$tstart-$tend.ms
+
