@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# run as ./strip-trace 0 100
+# not sure if works if the first number is not 0 :)
+# I don't understand how these timestamp work
+
 tstart=$1
 tend=$2
 first=-1
@@ -20,6 +24,7 @@ do
   fi
 done < ../att_downlink.ms > ../att_downlink-$tstart-$tend.ms
 
+first=-1
 while read number
 do
   if [ "$number" -ge "$tstart" ] ; then
