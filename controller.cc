@@ -8,8 +8,8 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), cwnd(5), count(0), sa(0), sv(0), rto(500), timeMostRecentAck(0), previousRTT(0),
-    previousSA(0), sendTimestamps()
+  : debug_( debug ), cwnd(300), count(0), sa(0), sv(0), rto(500), sasa(0),
+    previousSA(0), sendTimestamps(), slowStart(true)
 {
 }
 
@@ -52,15 +52,8 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
-  uint64_t current = timestamp();
-
   uint64_t sendTimestamp = sendTimestamps[sequence_number_acked];
   uint64_t rtt = timestamp_ack_received - sendTimestamp;
-  int64_t deltaRTT = 0;
-  if (previousRTT != 0) {
-    deltaRTT = rtt - previousRTT;
-  }
-  previousRTT = rtt;
 
   // Update estimators
   int64_t m = rtt;
@@ -79,41 +72,43 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }
   previousSA = sa;
 
-  int64_t deltaTime = 0;
-  if (timeMostRecentAck != 0) {
-    deltaTime = current - timeMostRecentAck;
-  }
-  timeMostRecentAck = current;
+  int64_t md = deltaSA;
+  md -= (sasa >> 2);
+  sasa += md; 
 
-  double dRTTdT = 0;
-  if (deltaTime != 0) {
-    dRTTdT = deltaRTT / ((double) deltaTime);
-  }
-
-  if (rtt > RTT_THRESHOLD_MS) {
-    cwnd = std::max(cwnd / 2, CWND_MIN);
-  }  else {
-    if (deltaSA <= 0) {
-      ++cwnd;
-      count = 0;
-    } else {
-      count++;
-    }
-    if (count >= cwnd) {
-      ++cwnd;
-      count = 0;
-    }
-  }
-
-  //if (rtt > RTT_THRESHOLD_MS) {
-  //  cwnd = std::max(cwnd / 2, CWND_MIN);
+  //if (rtt > RTT_THRESHOLD_MS || (rtt > (RTT_THRESHOLD_MS - 30) && (sasa >> 3) > 15)) {
+  //  slowStart = false;
+  //  if (deltaSA >= 80 && (sasa >> 3) >= 0) {
+  //    cwnd = std::max(cwnd / 8, CWND_MIN);
+  //  } else if (deltaSA >= 40 && (sasa >> 3) < 0) {
+  //    cwnd = std::max(cwnd / 4, CWND_MIN);
+  //  } else {
+  //    cwnd = std::max(cwnd / 2, CWND_MIN);
+  //  }
   //}  else {
-  //  count++;
+  //  if (slowStart || (deltaSA <= -50 && (sasa >> 3) <= 0)) {
+  //    ++cwnd;
+  //    count = 0;
+  //  } else if (deltaSA <= -25 && (sasa >> 3) > 0) {
+  //    count += 4;
+  //  } else {
+  //    count++;
+  //  }
   //  if (count >= cwnd) {
   //    ++cwnd;
   //    count = 0;
   //  }
   //}
+
+  if (rtt > RTT_THRESHOLD_MS) {
+    cwnd = std::max(cwnd / 2, CWND_MIN);
+  }  else {
+    count++;
+    if (count >= cwnd) {
+      ++cwnd;
+      count = 0;
+    }
+  }
 
   //if ((abs(rtt - (sa >> 3)) < (sv >> 2)) && rtt < RTT_THRESHOLD_MS)  {
   //  ++count;
@@ -131,8 +126,8 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
 	     send_timestamp_acked, recv_timestamp_acked );
-    fprintf( stderr, "rtt: %lu and scaled rtt average: %lu dRTTdt: %f\n",
-             rtt, sa, dRTTdT);
+    fprintf( stderr, "rtt: %lu and scaled rtt average: %lu sasa: %ld\n",
+             rtt, (sa >> 3), (sasa >> 3));
   }
 }
 
