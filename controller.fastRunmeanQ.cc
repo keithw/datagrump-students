@@ -15,6 +15,9 @@ FILE *fget = stderr;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ),
+    cwind(0.001),
+    runmean(std::queue<int>()),
+    packetBalance(std::list<uint64_t>()),
     resolution(200),
     rtt(40),
     rttsum(400),
@@ -26,10 +29,8 @@ Controller::Controller( const bool debug )
     recovery(0),
     lastPB(0),
     lastCW(0),
-    packetBalance(std::list<uint64_t>()),
-    start_time(0),
-    cwind(0.001)
-{
+    start_time(0)
+ {
 
   start_time = timestamp();
   fprintf( stderr, "startTime %lu\n", start_time);
