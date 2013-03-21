@@ -105,7 +105,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   	window_float = window_float + (1.5/window);
   }
   else{
-  	window_float = window_float - (0.75/window);
+  	window_float = window_float - (1.0/window);
   }
   
   for (int n=0 ; n<(rsize-1) ; n++ ){
