@@ -7,15 +7,16 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug )
+  : debug_( debug ), window(15), window_float(15), timeout(1000),
+  timeout_float(1000), rtt(1000), srtt(1000), alpha(0.5)
 {
-	window = 15;
+	/*window = 15;
 	window_float = 15;
 	timeout = 1000;
 	timeout_float = 1000;
 	rtt = 1000;
 	srtt = 1000;
-	alpha = 0.5;
+	alpha = 0.5;*/
 	
   /*unsigned int window = 15;
   unsigned int timeout = 1000;
