@@ -9,21 +9,21 @@ using namespace Network;
 Controller::Controller( const bool debug )
   : debug_( debug )
 {
-/*	window = 15;
+	window = 15;
 	window_float = 15;
 	timeout = 1000;
 	timeout_float = 1000;
 	rtt = 1000;
 	srtt = 1000;
-	alpha = 0.5;*/
+	alpha = 0.5;
 	
-  unsigned int window = 15;
+  /*unsigned int window = 15;
   unsigned int timeout = 1000;
   float window_float = 15;
   float timeout_float = 1000;
   uint64_t srtt = 1000;
   uint64_t rtt = 1000;
-  float alpha = 0.5;
+  float alpha = 0.5;*/
 }
 
 /* Get current window size, in packets */
