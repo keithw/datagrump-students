@@ -100,15 +100,15 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
                                /* when the acknowledged packet was received */
                                const uint64_t timestamp_ack_received )
 {
-  runmean.push(send_timestamp_acked);
-  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt)){
+  runmean.push(timestamp_ack_received);
+  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution)){
     fprintf( stderr, "pop %i, timediff %lu \n",
              runmean.front(),timestamp_ack_received-runmean.front());
     runmean.pop();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
-  cwind=((double)runmean.size())/resolution*rtt+10;
-
+  cwind=((double)runmean.size())/resolution*rtt*0.914+0.05811*rtt;
+  
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
              timestamp_ack_received, sequence_number_acked );
