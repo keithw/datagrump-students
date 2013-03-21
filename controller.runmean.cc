@@ -164,11 +164,11 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   double tfbest = 2*sqrt(runmean.size()+3/8)*slope+icept;
   double bwest=(tfbest*tfbest/4-1/8)/20;
   if(mrtt > (rtt/2+20)){
-    cwind= bwet*(rtt-10);
+    cwind= bwest*(rtt-10);
   }else{
   if(mrtt > (rtt/2+5)){
   //if(cwind > runmean.size()/resolution*rtt){
-    cwind= bwest*(rtt+20);
+    cwind= bwest*(rtt+10);
   }else{
     cwind= (bwest+sqrt(bwest)*0.598+1.11023)*(rtt);
     //cwind= bwest*(rtt+20);
