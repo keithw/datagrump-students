@@ -122,14 +122,15 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     rtimes.pop_back();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
-  //std::list<int>::const_iterator rIt=rtimes.begin();
-  //std::list<int>::const_iterator sIt=stimes.begin();
+  std::list<int>::const_iterator rIt=rtimes.begin();
+  std::list<int>::const_iterator sIt=stimes.begin();
   int diffsum=0;
-  /*for(; rIt!=rtimes.end() && sIt != stimes.end(); ++rIt, ++sIt){
-    int rtime=*rIt;
-    int stime=*sIt;
+  for(; (rIt!=rtimes.end() && sIt != stimes.end()); ++rIt, ++sIt){
+    fprintf(stderr,'iter');
+    int rtime= *rIt;
+    int stime= *sIt;
     diffsum+=rtime-stime;
-    }*/
+  }
   double mrtt=diffsum/((int)rtimes.size());
   fprintf(stderr,"rttmean: %i\n",(int)mrtt);
   //double bwest=((double)runmean.size())/resolution;
