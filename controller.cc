@@ -125,5 +125,9 @@ unsigned int Controller::timeout_ms( void )
 
 void Controller::timout_detected(void)
 {
+	if ( debug_ ) {
+    fprintf( stderr, "Timeout Detected" );
+  }
+  
 	window_float = window_float/2;
 }
