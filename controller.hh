@@ -56,7 +56,14 @@ public:
   uint64_t start_time ;
 
   void estimateParameters();
-  void refineParameters();
+  void Controller::refineParameters(const uint64_t sequence_number_acked,
+                                    /* what sequence number was acknowledged */
+                                    const uint64_t send_timestamp_acked,
+                                    /* when the acknowledged packet was sent */
+                                    const uint64_t recv_timestamp_acked,
+                                    /* when the acknowledged packet was received */
+                                    const uint64_t timestamp_ack_received );
+
   int chompWindow(int cint);
 };
 
