@@ -51,7 +51,7 @@ int main( int argc, char *argv[] )
         controller.packet_was_sent( x.sequence_number(),
                                     x.send_timestamp() );
         if ((++ns) > 5) {
-          window_size = controller.window_size();
+          //window_size = controller.window_size();
           ns = 0;
         }
       }
