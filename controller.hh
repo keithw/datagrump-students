@@ -21,7 +21,7 @@ private:
   float dev;
   float rttdev;
   float beta;
-  float rtt_rec [];
+  float rtt_rec [5];
   int rsize;
 
 public:
