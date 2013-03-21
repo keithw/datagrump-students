@@ -108,9 +108,9 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
   if(cwind >= runmean.size()/resolution*rtt){
-    cwind= runmean.size()/resolution*rtt;
+    cwind= runmean.size()/resolution*rtt+1;
   }else{
-    cwind=((double)runmean.size())/resolution*rtt*0.914+0.05811*rtt;
+    cwind=((double)runmean.size())/resolution*rtt*1.2+0.05811*rtt;
   }
   
   if ( debug_ ) {
