@@ -15,6 +15,7 @@ std::list< std::pair<uint64_t, uint64_t> > burstPackets;
 #define rttest 40.0
 FILE *fsend = stderr;
 FILE *fget = stderr;
+int lastspike = 0;
 
 
 /* Default constructor */
@@ -50,7 +51,7 @@ unsigned int Controller::window_size( void )
 {
   //double cwindDL = estimateParameters();
   int cint = (int) cwind;
-  //if(cint==0){cint=1;}
+  if(cint<1){cint=1;}
   //cint = chompWindow(cint, cwindDL);
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
@@ -107,13 +108,13 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
                                /* when the acknowledged packet was received */
                                const uint64_t timestamp_ack_received )
 {
-  double rtteps=10;
+  double rtteps=20;
   //push new packet info onto queue
   stimes.push_front(send_timestamp_acked);
   rtimes.push_front(recv_timestamp_acked);
   runmean.push(send_timestamp_acked);
   //trim queue to only include last (resolution+rtt/2) of packets.
-  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt+rtteps)){
+  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt)){
     fprintf( stderr, "pop %i, timediff %lu \n",
              runmean.front(),timestamp_ack_received-runmean.front());
     runmean.pop();
@@ -132,13 +133,19 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   double mrtt=diffsum/((int)rtimes.size());
   fprintf(stderr,"rttmean: %i\n",(int)mrtt);
   double bwest=((double)runmean.size())/resolution;
+  // if our RTT is low and stable with at least 2xRTT our last time
+  if(mrtt< (rtt+rtteps/2) && ((timestamp_ack_received-lastspike)<(2*rtt))){
+    cwind=bwest*(rtt+2*rtteps);
+  }else{
+    cwind= bwest*(rtt+rtteps);
+  }
   /*double slope = 0.5414;
   double icept = -1.0402;
   double tfbest = 2*sqrt(runmean.size()+3/8)*slope+icept;
   double bwest=(tfbest*tfbest/4-1/8)/20;*/
   // if RTT strongly caps out, drain queue by aiming for < RTT worth of buffer
     // RTT indicates non-trucation, aim for steady state of 20ms queue delay
-  cwind= bwest*(rtt+rtteps);
+
   /*
   if(mrtt > (rtt/2+5)){
     cwind= bwest*(rtt+20);
@@ -239,7 +246,7 @@ int Controller::chompWindow(int cint, double cwindDL) {
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 50; /* timeout of one second */
+  return 10000000; /* timeout of one second */
 }
 
 
