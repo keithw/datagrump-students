@@ -44,7 +44,7 @@ unsigned int Controller::window_size( void )
   }
 
   //return the_window_size;
-  window = (int) window_float;
+  window = (unsigned int) window_float;
   return window;
 }
 
