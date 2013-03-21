@@ -11,6 +11,9 @@ std::list<int>  stimes;
 std::list<int>  rtimes;
 
 #define rttest 40.0
+FILE *fsend = stderr;
+FILE *fget = stderr;
+
 
 /* Default constructor */
 Controller::Controller( const bool debug )
@@ -42,10 +45,10 @@ Controller::Controller( const bool debug )
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
-  //estimateParameters();
+  double cwindDL = estimateParameters();
   int cint = (int) cwind;
   if(cint==0){cint=1;}
-  cint = chompWindow(cint);
+  cint = chompWindow(cint, cwindDL);
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
@@ -96,40 +99,40 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 //////////////////////////////////////////////////
 
 
-void Controller::estimateParameters() {
-  uint64_t tStamp = timestamp();
+double Controller::estimateParameters() {
+  return cwind;
 
-  //downlink response rate:
-  double ackRateEst = cwind/rttest;
-  double ackRateObs = (ackTracker > 0.0) ? (1 / ackTracker) : ackRateEst;
-  double cwindDL = ackRateObs * rttest;
-  if (ackRateObs > ackRateEst) {
-    // if we are getting acks faster => network has recoved and queue is
-    // being flushed and we are getting fast responses
-    double wt = 0.5;
-    fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
-    cwind = wt*cwindDL + (1-wt)*cwind;
-  } else {
-    // // if we are getting acks slower => network is putting stuff in a queue somewhere
-    // // This means we need to slow down
-    // if ((lastCW > 1) && (lastCW >= (1.7*cwind))) {
-    //   // we owe a debt we may not be able to pay
-    //   double delta = lastCW - cwind;
-    //   fprintf(fsend, "%lu: overflow by %.2f : %.2f -> ", tStamp,  delta, cwind);
-    //   if (delta < 2*cwind) cwind -= delta/2;
-    //   else cwind /= 2;
-    //   fprintf(stderr, "%.2f \n", cwind);
-    // } else if(lastPB <= lastCW) {
-    //   lastPB = lastCW;
-    //   //cwind += 1;
-    // }
-  }
-
+  // uint64_t tStamp = timestamp();
+  // //downlink response rate:
+  // double ackRateEst = cwind/rttest;
+  // double ackRateObs = (ackTracker > 0.0) ? (1 / ackTracker) : ackRateEst;
+  // double cwindDL = ackRateObs * rttest;
+  // if (ackRateObs > ackRateEst) {
+  //   // if we are getting acks faster => network has recoved and queue is
+  //   // being flushed and we are getting fast responses
+  //   double wt = 0.5;
+  //   fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
+  //   cwind = wt*cwindDL + (1-wt)*cwind;
+  // } else {
+  //   // // if we are getting acks slower => network is putting stuff in a queue somewhere
+  //   // // This means we need to slow down
+  //   // if ((lastCW > 1) && (lastCW >= (1.7*cwind))) {
+  //   //   // we owe a debt we may not be able to pay
+  //   //   double delta = lastCW - cwind;
+  //   //   fprintf(fsend, "%lu: overflow by %.2f : %.2f -> ", tStamp,  delta, cwind);
+  //   //   if (delta < 2*cwind) cwind -= delta/2;
+  //   //   else cwind /= 2;
+  //   //   fprintf(stderr, "%.2f \n", cwind);
+  //   // } else if(lastPB <= lastCW) {
+  //   //   lastPB = lastCW;
+  //   //   //cwind += 1;
+  //   // }
+  // }
 }
 
 
 
-int Controller::chompWindow(int cint) {
+int Controller::chompWindow(int cint, double cwindDL) {
   uint64_t tStamp = timestamp();
   // if we have a zero congestion window, push it out of this regime
   // if we are just starting up
@@ -231,8 +234,14 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
                                   const uint64_t send_timestamp_acked,
                                   const uint64_t recv_timestamp_acked,
                                   const uint64_t timestamp_ack_received ){
+  assert(sequence_number_acked >=0);
+  assert(send_timestamp_acked >= 0);
+  assert(recv_timestamp_acked >= 0);
+  assert(timestamp_ack_received >= 0);
+
   if (lastAck == 0) {
-    lastAck = recv_timestamp_acked;
+    //lastAck = recv_timestamp_acked;
+    lastAck = timestamp_ack_received;
   }
   else if(lastAck < recv_timestamp_acked){ //if this is not true, something funny is going on
     if (recovery > 0)  {

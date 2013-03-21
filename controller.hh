@@ -55,7 +55,7 @@ public:
   unsigned int lastCW ;
   uint64_t start_time ;
 
-  void estimateParameters();
+  double estimateParameters();
   void refineParameters(const uint64_t sequence_number_acked,
                         /* what sequence number was acknowledged */
                         const uint64_t send_timestamp_acked,
