@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-enum ControllerType { CONSTCWND, AIMD, DELAY };
+enum ControllerType { CONSTCWND, AIMD, DELAY, ADAPTIVEDELAY };
 
 /* Flow controller interface */
 

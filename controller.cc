@@ -35,7 +35,8 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, sent packet %lu.\n",
 	     send_timestamp, sequence_number );
-    fprintf( fopen("/dev/null", "w"), "%d", is_retransmit );
+    if( is_retransmit )
+      fprintf( stderr , "Retransmit \n" );
   }
 }
 

@@ -11,6 +11,7 @@ class DelayController: public Controller
 {
 private:
  const uint64_t delay_threshold; 
+ double inc_counter;
   
 
 public:

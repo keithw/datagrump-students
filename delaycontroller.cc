@@ -8,7 +8,7 @@ using namespace Network;
 
 /* Default constructor */
 DelayController::DelayController( const bool debug, const unsigned int cwnd, const uint64_t delay_threshold )
-  : Controller(debug, cwnd), delay_threshold(delay_threshold)
+  : Controller(debug, cwnd), delay_threshold(delay_threshold), inc_counter(0)
 {
 }
 
@@ -35,10 +35,22 @@ void DelayController::ack_received( const uint64_t sequence_number_acked,
   const uint64_t rtt = timestamp_ack_received-send_timestamp_acked;
   
   if (rtt > delay_threshold){
-	cwnd = cwnd-1;
+    if(!((cwnd <= 1) && (inc_counter <= 0))){
+      inc_counter -= 1.5;
+      if((inc_counter <= 0) && (cwnd != 1)){
+        --cwnd;
+        inc_counter = cwnd;
+      }
+    }
+    fprintf( stderr, "At time %lu, rtt %lu, AD: cwnd %d inc %g \n",timestamp_ack_received, rtt, cwnd, inc_counter );
   }
   else{
-	cwnd = cwnd+1;
+    inc_counter += 1.5;
+    if(inc_counter >= cwnd){
+      inc_counter -= cwnd;
+      ++cwnd;
+    }
+    fprintf( stderr, "At time %lu, rtt %lu, AI: cwnd %d inc %g \n",timestamp_ack_received, rtt, cwnd, inc_counter );
   }
 }
 

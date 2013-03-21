@@ -7,6 +7,7 @@
 #include "controller.hh"
 #include "aimd.hh"
 #include "delaycontroller.hh"
+#include "adaptive-delay.hh"
 
 using namespace std;
 using namespace Network;
@@ -18,9 +19,8 @@ int main( int argc, char *argv[] )
   bool debug = false;
 	unsigned int init_cwnd = 10;
 	double ai_coeff = 1, md_coeff = 3;
-  int delay_threshold = 100;
-	ControllerType controllerType = AIMD;
-//  FILE* cwndlog = fopen("/tmp/cwndlog","w");
+  uint64_t delay_threshold = 35;
+	ControllerType controllerType = ADAPTIVEDELAY;
  
   if ( argc == 4 && string( argv[ 3 ] ) == "debug" ) {
     debug = true;
@@ -37,8 +37,12 @@ int main( int argc, char *argv[] )
 			controllerType = AIMD;
 		} else if ( string( argv[ 4 ]) == "delay" && argc == 7){
       init_cwnd = strtoul(argv[5], NULL, 0);
-			delay_threshold = strtod(argv[6], NULL);
+			delay_threshold = strtoul(argv[6], NULL, 0);
 			controllerType = DELAY;
+		} else if ( string( argv[ 4 ]) == "adelay" && argc == 7){
+      init_cwnd = strtoul(argv[5], NULL, 0);
+			delay_threshold = strtoul(argv[6], NULL, 0);
+			controllerType = ADAPTIVEDELAY;
 		} else {
     	fprintf( stderr, "Usage: %s IP PORT [debug] [controller]\n", argv[ 0 ] );
     	fprintf( stderr, "Controller Unkown. Available Controllers:\n");
@@ -73,6 +77,8 @@ int main( int argc, char *argv[] )
    	  controller = new AIMDController( debug, init_cwnd, ai_coeff, md_coeff);
 		} else if(controllerType == DELAY) {
    	  controller = new DelayController( debug, init_cwnd, delay_threshold);
+		} else if(controllerType == ADAPTIVEDELAY) {
+   	  controller = new AdaptDelayController( debug, init_cwnd, delay_threshold);
 		} 
 
     /* Loop */
@@ -100,7 +106,6 @@ int main( int argc, char *argv[] )
 				sock.send( x );
 				controller->packet_was_sent( x.sequence_number(),
 							    x.send_timestamp(), true );
-//        fprintf( cwndlog, "MD %d", controller->window_size());
 			} else {
 				/* we got an acknowledgment */
 				Packet ack = sock.recv();
@@ -114,7 +119,6 @@ int main( int argc, char *argv[] )
 				ack.ack_send_timestamp(),
 				ack.ack_recv_timestamp(),
 				ack.recv_timestamp() );
-//        fprintf( cwndlog, "AI %d", controller->window_size());
       }
     }
   } catch ( const string & exception ) {
