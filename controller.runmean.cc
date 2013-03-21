@@ -110,7 +110,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   if(cwind > runmean.size()/resolution*rtt){
     cwind= runmean.size()/resolution*rtt;
   }else{
-    cwind=cwind+ (runmean.size()/resolution*rtt-cwind)*2+0.65;
+    cwind=runmean.size()/resolution*rtt*1.5+0.65;
   }
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
