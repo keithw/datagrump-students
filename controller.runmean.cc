@@ -81,7 +81,7 @@ unsigned int Controller::window_size( void )
   /* Default: fixed window size of one outstanding packet */
   int cint = (int)cwind;
 
-  cint = chompWindow(cint);
+  //cint = chompWindow(cint);
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
@@ -140,11 +140,12 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     runmean.pop();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
-  if(cwind > runmean.size()/resolution*rtt){
-    cwind= runmean.size()/resolution*rtt+1;
-  }else{
+  double bwest=runmean.size()/resolution;
+  //if(cwind > runmean.size()/resolution*rtt){
+  cwind= bwest*(rtt+40);
+    /*}else{
     cwind=runmean.size()/resolution*rtt*1.5+1;
-  }
+    }*/
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
              timestamp_ack_received, sequence_number_acked );
