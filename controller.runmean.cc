@@ -112,9 +112,9 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   //push new packet info onto queue
   stimes.push_front(send_timestamp_acked);
   rtimes.push_front(recv_timestamp_acked);
-  runmean.push(send_timestamp_acked);
+  runmean.push(timestamp_ack_received);
   //trim queue to only include last (resolution+rtt/2) of packets.
-  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt)){
+  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution)){
     fprintf( stderr, "pop %i, timediff %lu \n",
              runmean.front(),timestamp_ack_received-runmean.front());
     runmean.pop();
@@ -122,26 +122,29 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     rtimes.pop_back();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
-  std::list<int>::const_iterator rIt=rtimes.begin();
-  std::list<int>::const_iterator sIt=stimes.begin();
-  int diffsum=0;
-  for(; (rIt!=rtimes.end() && sIt != stimes.end()); ++rIt, ++sIt){
-    fprintf(stderr,"iter");
+  if(rtimes.size()>0){
+    std::list<int>::const_iterator rIt=rtimes.begin();
+    std::list<int>::const_iterator sIt=stimes.begin();
+    int diffsum=0;
+    for(; (rIt!=rtimes.end() && sIt != stimes.end()); ++rIt, ++sIt){
+      fprintf(stderr,"iter");
     int rtime= *rIt;
     int stime= *sIt;
     diffsum+=rtime-stime;
+    }
+    double mrtt=diffsum/((int)rtimes.size());
+    fprintf(stderr,"rttmean: %i\n",(int)mrtt);
+  }else{
+    cwind= bwest*(rtt+rtteps);
   }
-  double mrtt=diffsum/((int)rtimes.size());
-  fprintf(stderr,"rttmean: %i\n",(int)mrtt);
   //double bwest=((double)runmean.size())/resolution;
   // if our RTT is low and stable with at least 2xRTT our last time
-  /*if(mrtt< (rtt+rtteps/2) && ((timestamp_ack_received-lastspike)<(2*rtt))){
+  if(mrtt< (rtt+rtteps/2) && ((timestamp_ack_received-lastspike)<(2*rtt))){
     cwind=bwest*(rtt+2*rtteps);
     lastspike=timestamp_ack_received;
   }else{
     cwind= bwest*(rtt+rtteps);
-    }*/
-  cwind=1;
+  }
   /*double slope = 0.5414;
   double icept = -1.0402;
   double tfbest = 2*sqrt(runmean.size()+3/8)*slope+icept;
