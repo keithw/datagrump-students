@@ -7,7 +7,7 @@
 
 namespace {
   const double INITIAL_WINDOW = 1.0;
-  const int RTT_THRESHOLD = 100;
+  const int RTT_THRESHOLD = 80;
   const double WINDOW_SIZE_ADJUSTMENT = 0.1;
 
   const double RTT_ALPHA = 0.8;
