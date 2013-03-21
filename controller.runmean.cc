@@ -11,7 +11,7 @@ std::queue<int>  runmean;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ),
-    cwind(0.001),
+    cwind(5),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
     resolution(100),
