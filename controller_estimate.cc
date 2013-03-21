@@ -9,13 +9,12 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), cwnd(1), reduced(0), thres(50), table{0}, pointer_table(0),min_table(0)
+  : debug_( debug ), cwnd(1), reduced(0), thres(50), table{0}, pointer_table(0),min_table(1000)
 {
 	std::srand(std::time(0));
 	cwnd = std::rand()%100+1;
-	cwnd = 100;
 	for (int i=0; i<1000;i++)
-		table[i]=50;
+		table[i]=100;
 }
 
 /* Get current window size, in packets */
@@ -74,7 +73,13 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 100; /* timeout of one second */
+  int timeout = 200;
+  //Estimate the min delay
+  if (pointer_table==(800-1)){
+	fprintf( stderr, "estimation complete: %d.\n", min_table);
+	timeout	= 3*min_table;
+  }
+  return timeout; /* timeout of one second */
 }
 
 void Controller::cwnd_from_delay( int diff )
@@ -112,9 +117,15 @@ void Controller::cwnd_from_delay( int diff )
 void Controller::add_table( int item)
 {
 	table[pointer_table] = item;
-	min_table = (item>min_table)?item:min_table;
+	min_table = (item<min_table)?item:min_table;
+	fprintf( stderr, "min_table: %d.\n", min_table);
 	++pointer_table;
 	pointer_table = pointer_table%800;
+  //Estimate the min delay is complete
+  if (pointer_table==(800-1)){
+	for (int i=800; i<1000; i++)
+		table[i] = 2*min_table;
+  }
 
 }	
 
