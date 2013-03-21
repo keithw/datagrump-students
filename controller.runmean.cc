@@ -39,7 +39,7 @@ void Controller::estimateParameters() {
 }
 
 
-/*
+
 int Controller::chompWindow(int cint) {
 
   // if we have a zero congestion window, push it out of this regime
@@ -76,7 +76,6 @@ int Controller::chompWindow(int cint) {
   lastCW = cint;
   return cint;
 }
-*/
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
@@ -187,7 +186,7 @@ unsigned int Controller::timeout_ms( void )
   return 10000; /* timeout of one second */
 }
 
-/*
+
 void Controller::refineModulation(const uint64_t sequence_number_acked,
                                   const uint64_t send_timestamp_acked,
                                   const uint64_t recv_timestamp_acked,
@@ -212,4 +211,3 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
     ++recovery;
   }
 }
-*/
