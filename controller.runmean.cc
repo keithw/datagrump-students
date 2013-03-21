@@ -101,34 +101,35 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 
 
 double Controller::estimateParameters() {
-  return cwind;
 
-  // uint64_t tStamp = timestamp();
-  // //downlink response rate:
-  // double ackRateEst = cwind/rttest;
-  // double ackRateObs = (ackTracker > 0.0) ? (1 / ackTracker) : ackRateEst;
-  // double cwindDL = ackRateObs * rttest;
-  // if (ackRateObs > ackRateEst) {
-  //   // if we are getting acks faster => network has recoved and queue is
-  //   // being flushed and we are getting fast responses
-  //   double wt = 0.5;
-  //   fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
-  //   cwind = wt*cwindDL + (1-wt)*cwind;
-  // } else {
-  //   // // if we are getting acks slower => network is putting stuff in a queue somewhere
-  //   // // This means we need to slow down
-  //   // if ((lastCW > 1) && (lastCW >= (1.7*cwind))) {
-  //   //   // we owe a debt we may not be able to pay
-  //   //   double delta = lastCW - cwind;
-  //   //   fprintf(fsend, "%lu: overflow by %.2f : %.2f -> ", tStamp,  delta, cwind);
-  //   //   if (delta < 2*cwind) cwind -= delta/2;
-  //   //   else cwind /= 2;
-  //   //   fprintf(stderr, "%.2f \n", cwind);
-  //   // } else if(lastPB <= lastCW) {
-  //   //   lastPB = lastCW;
-  //   //   //cwind += 1;
-  //   // }
-  // }
+  uint64_t tStamp = timestamp();
+  //downlink response rate:
+  double ackRateEst = cwind/rttest;
+  double ackRateObs = (ackTracker > 0.0) ? (1 / ackTracker) : ackRateEst;
+  double cwindDL = ackRateObs * rttest;
+  if (ackRateObs > ackRateEst) {
+    // if we are getting acks faster => network has recoved and queue is
+    // being flushed and we are getting fast responses
+    double wt = 0.5;
+    fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
+    cwind = wt*cwindDL + (1-wt)*cwind;
+  } else {
+    // // if we are getting acks slower => network is putting stuff in a queue somewhere
+    // // This means we need to slow down
+    // if ((lastCW > 1) && (lastCW >= (1.7*cwind))) {
+    //   // we owe a debt we may not be able to pay
+    //   double delta = lastCW - cwind;
+    //   fprintf(fsend, "%lu: overflow by %.2f : %.2f -> ", tStamp,  delta, cwind);
+    //   if (delta < 2*cwind) cwind -= delta/2;
+    //   else cwind /= 2;
+    //   fprintf(stderr, "%.2f \n", cwind);
+    // } else if(lastPB <= lastCW) {
+    //   lastPB = lastCW;
+    //   //cwind += 1;
+    // }
+  }
+
+  return cwind;
 }
 
 
