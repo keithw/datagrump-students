@@ -11,7 +11,7 @@ std::queue<int>  runmean;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ),
-    cwind(0.001),
+    cwind(5),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
     resolution(100),
@@ -133,15 +133,18 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
                                /* when the acknowledged packet was received */
                                const uint64_t timestamp_ack_received )
 {
-  runmean.push(send_timestamp_acked);
-  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt)){
+  runmean.push(timestamp_ack_received);
+  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt/2)){
     fprintf( stderr, "pop %i, timediff %lu \n",
              runmean.front(),timestamp_ack_received-runmean.front());
     runmean.pop();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
-  cwind=((double)runmean.size())/resolution*rtt+10;
-
+  if(cwind > runmean.size()/resolution*rtt){
+    cwind= runmean.size()/resolution*rtt;
+  }else{
+    cwind=runmean.size()/resolution*rtt*1.5+0.65;
+  }
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
              timestamp_ack_received, sequence_number_acked );
@@ -154,7 +157,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 1000; /* timeout of one second */
+  return 10000; /* timeout of one second */
 }
 
 
