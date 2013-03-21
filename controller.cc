@@ -10,7 +10,7 @@ using namespace Network;
 Controller::Controller( const bool debug )
   : debug_( debug ), window(15), window_float(15), timeout(1000),
   timeout_float(1000), rtt(0), srtt(0), alpha(0.8), dev(0), rttdev(0),
-  beta(0.8), rtt_rec({0,0,0,0,0});
+  beta(0.8), rtt_rec({0,0,0,0,0})
 {
 	/*window = 15;
 	window_float = 15;
@@ -84,7 +84,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   
   
   rtt = timestamp_ack_received - send_timestamp_acked;
-  int rsize = sizeof(rtt_rec)/sizeof(float);
+  int rsize = 5;//sizeof(rtt_rec)/sizeof(float);
   
   /*if (srtt == 0){
   	srtt = rtt;
