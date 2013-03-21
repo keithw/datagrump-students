@@ -133,3 +133,10 @@ void Controller::timout_detected(void)
   
 	window_float = window_float/2;
 }
+
+void Controller::debugging(string s)
+{
+	if ( debug_ ) {
+    fprintf( stderr, s );
+  	}
+}

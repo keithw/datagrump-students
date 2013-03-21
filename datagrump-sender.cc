@@ -43,11 +43,13 @@ int main( int argc, char *argv[] )
     while ( 1 ) {
       /* Ask controller: what is the window size? */
       unsigned int window_size = controller.window_size();
-
+	  controller.debugging("window size made successfully. \n");
       /* fill up window */
       while ( sequence_number - next_ack_expected < window_size ) {
 	Packet x( destination, sequence_number++ );
+	controller.debugging("packet made successfully. \n");
 	sock.send( x );
+	controller.debugging("packet sent successfully. \n");
 	controller.packet_was_sent( x.sequence_number(),
 				    x.send_timestamp() );
       }
