@@ -278,5 +278,5 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
   networkDown = false;
 }
 void Controller::markBeginning(const uint64_t start_sequence_number, const uint64_t end_sequence_number) {
-  burstPackets.push_back(std::pair<uint64_t, uint64_t>(start_sequence_number, end_sequence_number))
+  burstPackets.push_back(std::pair<uint64_t, uint64_t>(start_sequence_number, end_sequence_number));
 }
