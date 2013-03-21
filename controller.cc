@@ -8,7 +8,8 @@ using namespace Network;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ), window(15), window_float(15), timeout(1000),
-  timeout_float(1000), rtt(1000), srtt(1000), alpha(0.5)
+  timeout_float(1000), rtt(0), srtt(0), alpha(0.8), dev(0), rttdev(0),
+  beta(0.8);
 {
 	/*window = 15;
 	window_float = 15;
@@ -82,8 +83,15 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   window_float = window_float + (1.0/window);
   
   rtt = timestamp_ack_received - send_timestamp_acked;
+  
+  /*if (srtt == 0){
+  	srtt = rtt;
+  }*/
+  
   srtt = (alpha*rtt) + ((1-alpha)*srtt);
-  timeout_float = 1.25 * srtt;
+  dev = abs(rtt - srtt);
+  rttdev = (beta*dev) + ((1-beta)*rttdev);
+  timeout_float = srtt + (4*rttdev);
   
 }
 

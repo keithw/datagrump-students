@@ -18,6 +18,8 @@ private:
   uint64_t rtt;
   uint64_t srtt;
   float alpha;
+  float dev;
+  float rttdev;
 
 public:
   /* Public interface for the flow controller */
