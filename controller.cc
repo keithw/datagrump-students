@@ -83,24 +83,24 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }
   
   
-  // rtt = timestamp_ack_received - send_timestamp_acked;
-//   //int rsize = 5;//sizeof(rtt_rec)/sizeof(float);
-//   
-//   /*if (srtt == 0){
-//   	srtt = rtt;
-//   }*/
-//   
-//   srtt = (alpha*rtt) + ((1-alpha)*srtt);
-//   dev = rtt - srtt;
-//   dev = dev>0?dev:0-dev;
-//   rttdev = (beta*dev) + ((1-beta)*rttdev);
-//   timeout_float = srtt + (4*rttdev);
-//   
-//   uint64_t avg = 0;
-//   for (int n=0 ; n<rsize ; n++ ){
-//   	avg = avg + rtt_rec[n];
-//   }
-//   avg = avg/rsize;
+  rtt = timestamp_ack_received - send_timestamp_acked;
+  //int rsize = 5;//sizeof(rtt_rec)/sizeof(float);
+  
+  /*if (srtt == 0){
+  	srtt = rtt;
+  }*/
+  
+  srtt = (alpha*rtt) + ((1-alpha)*srtt);
+  dev = rtt - srtt;
+  dev = dev>0?dev:0-dev;
+  rttdev = (beta*dev) + ((1-beta)*rttdev);
+  //timeout_float = srtt + (4*rttdev);
+  
+  uint64_t avg = 0;
+  for (int n=0 ; n<rsize ; n++ ){
+  	avg = avg + rtt_rec[n];
+  }
+  avg = avg/rsize;
 //   
 //   if (rtt > (avg)){
 //   	window_float = window_float + (1.0/window);
@@ -109,10 +109,10 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 //   	window_float = window_float - (0.5/window);
 //   }
 //   
-//   for (int n=0 ; n<(rsize-1) ; n++ ){
-//   	rtt_rec[n] = rtt_rec[n+1];
-//   }
-//   rtt_rec[rsize-1] = rtt;
+  for (int n=0 ; n<(rsize-1) ; n++ ){
+  	rtt_rec[n] = rtt_rec[n+1];
+  }
+  rtt_rec[rsize-1] = rtt;
   
 }
 
