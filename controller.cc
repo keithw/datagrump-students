@@ -134,9 +134,9 @@ void Controller::timout_detected(void)
 	window_float = window_float/2;
 }
 
-void Controller::debugging(string s)
+void Controller::debugging(int n)
 {
 	if ( debug_ ) {
-    fprintf( stderr, s );
+    fprintf( stderr, "debugging code = %d.\n", n );
   	}
 }
