@@ -119,6 +119,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 unsigned int Controller::timeout_ms( void )
 {
 	timeout = (int) timeout_float;
+	fprintf( stderr, "timeout = %d.\n", timeout );
 	return timeout;
   //return 1000; /* timeout of one second */
 }
