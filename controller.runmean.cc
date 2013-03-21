@@ -67,8 +67,9 @@ int Controller::chompWindow(int cint) {
   }
   // make sure %change in cint isn't too spiky : causes delays
   if ((lastCW > 0) && (cint > lastCW))
-    if ((cint - lastCW)/float(lastCW) > 2)
-      cint = 1.25*lastCW;
+    if ((cint - lastCW)/float(lastCW) > 2) // change by more than 200%
+      cint = 2*lastCW; // can't be anything less than 2 since we are dealing with
+                       // integers. May give issues with small numbers
 
   lastCW = cint;
   return cint;
