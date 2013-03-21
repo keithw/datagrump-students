@@ -107,7 +107,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     runmean.pop();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
-  cwind=((double)runmean.size())/resolution*rtt+10;
+  cwind=((double)runmean.size())/resolution*rtt*0.914+0.05811*rtt;
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
