@@ -48,7 +48,7 @@ Controller::Controller( const bool debug )
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
-  double cwindDL = estimateParameters();
+  //double cwindDL = estimateParameters();
   int cint = (int) cwind;
   if(cint==0){cint=1;}
   //cint = chompWindow(cint, cwindDL);
