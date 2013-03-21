@@ -83,7 +83,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
                                const uint64_t timestamp_ack_received )
 /* when the ack was received (by sender) */
 {
-  refineParameters(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
+  //refineParameters(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
   //refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
