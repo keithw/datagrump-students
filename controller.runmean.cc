@@ -159,7 +159,9 @@ int Controller::chompWindow(int cint, double cwindDL) {
     //fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
     cint = 1;//cint/2;
   }
-
+  else if ((lastAck > 0)  && (cint == lastCW)) {
+    cint += 1; // don't ever stay in a state without exploring up
+  }
   // make sure %change in cint isn't too spiky : causes delays
   if ((lastCW > 0) && (cint > (int)lastCW))
     if ((cint - lastCW)/float(lastCW) > 2) // change by more than 200%
