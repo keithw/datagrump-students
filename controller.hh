@@ -50,6 +50,7 @@ public:
   double ackLastDelta ;
   uint64_t lastAck ;
   double rho;
+  bool networkDown;
   unsigned int recovery ;
   unsigned int lastPB ;
   unsigned int lastCW ;

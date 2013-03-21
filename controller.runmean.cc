@@ -30,6 +30,7 @@ Controller::Controller( const bool debug )
     ackLastDelta(0.0),
     lastAck(0),
     rho(2.5),
+    networkDown(false),
     recovery(0),
     lastPB(0),
     lastCW(0),
@@ -129,12 +130,13 @@ double Controller::estimateParameters() {
     // }
   }
 
-  return cwind;
+  return cwindDL;
 }
 
 
 
 int Controller::chompWindow(int cint, double cwindDL) {
+  if (networkDown) return 0;
   uint64_t tStamp = timestamp();
   // if we have a zero congestion window, push it out of this regime
   // if we are just starting up
@@ -148,13 +150,14 @@ int Controller::chompWindow(int cint, double cwindDL) {
   // if we haven't seen the last ack in a while, stop sending cause
   // things are queued up!!
   // TODO: change 75 to something related to ~ 2*rtt!!. Try 1.5 or something
-  if ((lastAck > 0) && ((tStamp - lastAck) > (1.5*rttest))) {
+  if ((lastAck > 0) && ((tStamp - lastAck) > (rttest))) {
     fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
     cint = 0;
+    networkDown = true;
   }
-  if ((lastAck > 0) && ((tStamp - lastAck) > rttest)) {
+  if ((lastAck > 0) && ((tStamp - lastAck) > (0.5*rttest))) {
     //fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
-    cint = cint/2;
+    //cint = cint/2;
   }
 
   // make sure %change in cint isn't too spiky : causes delays
@@ -261,5 +264,5 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
   else if(lastAck == recv_timestamp_acked) {//multiple acks at once
     ++recovery;
   }
-
+  networkDown = false;
 }
