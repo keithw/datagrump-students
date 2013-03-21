@@ -163,15 +163,16 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   double icept = -1.0402;
   double tfbest = 2*sqrt(runmean.size()+3/8)*slope+icept;
   double bwest=(tfbest*tfbest/4-1/8)/20;
+  // if RTT strongly caps out, drain queue by aiming for < RTT worth of buffer
   if(mrtt > (rtt/2+20)){
     cwind= bwest*(rtt-10);
   }else{
+    // RTT indicates non-trucation, aim for steady state of 10ms queue delay
   if(mrtt > (rtt/2+5)){
-  //if(cwind > runmean.size()/resolution*rtt){
     cwind= bwest*(rtt+10);
   }else{
-    cwind= (bwest+sqrt(bwest)*0.598+1.11023)*(rtt);
-    //cwind= bwest*(rtt+20);
+    // RTT indicates truncation, aim for 0.75 quantile bw, 0ms delay
+    cwind= (bwest+sqrt(bwest*200)*0.598/200+1.11023/200)*(rtt);
   }}
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
