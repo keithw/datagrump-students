@@ -31,8 +31,8 @@ unsigned int Controller::window_size( void )
   }
   //fprintf( stderr, "asdfasfd",);
   if (the_window_size == 0) { the_window_size = 10; }
-  return 25; // for fixed window size experiment
-  //return the_window_size;
+  //return 25; // for fixed window size experiment
+  return the_window_size;
 }
 
 /* A packet was sent */
