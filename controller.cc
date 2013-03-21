@@ -28,7 +28,6 @@ Controller::Controller( const bool debug )
   uint64_t rtt = 1000;
   float alpha = 0.5;*/
   
-  rsize = sizeof(rtt_rec)/sizeof(float);
 }
 
 /* Get current window size, in packets */
@@ -85,6 +84,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   
   
   rtt = timestamp_ack_received - send_timestamp_acked;
+  rsize = sizeof(rtt_rec)/sizeof(float);
   
   /*if (srtt == 0){
   	srtt = rtt;
