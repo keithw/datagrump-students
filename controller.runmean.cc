@@ -107,9 +107,15 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     runmean.pop();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
-  int dummy = recv_timestamp_acked;
-  int dummy = sequence_number_acked;
   cwind=((double)runmean.size())/resolution*rtt+10;
+
+  if ( debug_ ) {
+    fprintf( stderr, "At time %lu, received ACK for packet %lu",
+             timestamp_ack_received, sequence_number_acked );
+
+    fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
+             send_timestamp_acked, recv_timestamp_acked );
+  }
 }
 
 /* How long to wait if there are no acks before sending one more packet */
