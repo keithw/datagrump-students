@@ -108,7 +108,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
                                /* when the acknowledged packet was received */
                                const uint64_t timestamp_ack_received )
 {
-  //double rtteps=20;
+  double rtteps=20;
   //push new packet info onto queue
   stimes.push_front(send_timestamp_acked);
   rtimes.push_front(recv_timestamp_acked);
@@ -122,6 +122,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     rtimes.pop_back();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
+  double bwest=((double)runmean.size())/resolution;
   if(rtimes.size()>0){
     std::list<int>::const_iterator rIt=rtimes.begin();
     std::list<int>::const_iterator sIt=stimes.begin();
@@ -134,14 +135,13 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     }
     double mrtt=diffsum/((int)rtimes.size());
     fprintf(stderr,"rttmean: %i\n",(int)mrtt);
-  }else{
-    cwind= bwest*(rtt+rtteps);
-  }
-  //double bwest=((double)runmean.size())/resolution;
-  // if our RTT is low and stable with at least 2xRTT our last time
-  if(mrtt< (rtt+rtteps/2) && ((timestamp_ack_received-lastspike)<(2*rtt))){
-    cwind=bwest*(rtt+2*rtteps);
-    lastspike=timestamp_ack_received;
+    // if our RTT is low and stable with at least 2xRTT our last time
+    if(mrtt< (rtt+rtteps/2) && ((timestamp_ack_received-lastspike)<(2*rtt))){
+      cwind=bwest*(rtt+2*rtteps);
+      lastspike=timestamp_ack_received;
+    }else{
+      cwind= bwest*(rtt+rtteps);
+    }
   }else{
     cwind= bwest*(rtt+rtteps);
   }
