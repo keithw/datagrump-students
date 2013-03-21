@@ -24,7 +24,7 @@ Controller::Controller( const bool debug )
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
     resolution(200),
-    rtt(40),
+    rtt(60),
     rttsum(400),
     rttn(10),
     ackTracker(0.0),
@@ -56,7 +56,6 @@ unsigned int Controller::window_size( void )
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
              timestamp(), cint );
   }
-
   return cint;
 }
 
@@ -83,6 +82,21 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
                                const uint64_t timestamp_ack_received )
 /* when the ack was received (by sender) */
 {
+  runmean.push(send_timestamp_acked);
+  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt)){
+    fprintf( stderr, "pop %i, timediff %lu \n",
+	     runmean.front(),timestamp_ack_received-runmean.front());
+    runmean.pop();
+  }
+  fprintf(stderr, "size: %i\n",(int)runmean.size());
+  cwind=((double)runmean.size())/resolution*rtt;
+  if ( debug_ ) {
+    fprintf( stderr, "At time %lu, received ACK for packet %lu",
+	     timestamp_ack_received, sequence_number_acked );
+
+    fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
+	     send_timestamp_acked, recv_timestamp_acked );
+  }/*
   refineParameters(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
   //refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
   if ( debug_ ) {
@@ -91,7 +105,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
              send_timestamp_acked, recv_timestamp_acked );
-  }
+  }*/
 }
 
 
