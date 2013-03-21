@@ -20,7 +20,7 @@ FILE *fget = stderr;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ),
-    cwind(10),
+    cwind(5),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
     resolution(200),
@@ -50,7 +50,7 @@ unsigned int Controller::window_size( void )
 {
   //double cwindDL = estimateParameters();
   int cint = (int) cwind;
-  if(cint==0){cint=1;}
+  //if(cint==0){cint=1;}
   //cint = chompWindow(cint, cwindDL);
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
@@ -192,7 +192,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   rtimes.push_front(recv_timestamp_acked);
   runmean.push(send_timestamp_acked);
   //trim queue to only include last (resolution+rtt/2) of packets.
-  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt)){
+  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt+20)){
     fprintf( stderr, "pop %i, timediff %lu \n",
              runmean.front(),timestamp_ack_received-runmean.front());
     runmean.pop();
