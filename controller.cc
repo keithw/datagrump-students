@@ -8,8 +8,8 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), window(30), window_float(30), timeout(1500),
-  timeout_float(1500), rtt(0), srtt(0), alpha(0.8), dev(0), rttdev(0),
+  : debug_( debug ), window(30), window_float(30.0), timeout(1500),
+  timeout_float(1500.0), rtt(0), srtt(0), alpha(0.8), dev(0), rttdev(0),
   beta(0.8), rtt_rec{0,0,0,0,0}, rsize(sizeof(rtt_rec)/sizeof(float))
 {
 	/*window = 15;
@@ -119,7 +119,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-	timeout = (int) timeout_float;
+	timeout = (unsigned int) timeout_float;
 	fprintf( stderr, "timeout = %d.\n", timeout );
 	return timeout;
   //return 1000; /* timeout of one second */
