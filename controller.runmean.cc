@@ -113,7 +113,7 @@ double Controller::estimateParameters() {
     // being flushed and we are getting fast responses
     double wt = 0.5;
     fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
-    cwind = (wt*cwindDL + (1-wt)*cwind)+1;
+    cwind = (wt*cwindDL + (1-wt)*cwind);
   } else {
     // // if we are getting acks slower => network is putting stuff in a queue somewhere
     // // This means we need to slow down
@@ -160,7 +160,7 @@ int Controller::chompWindow(int cint, double cwindDL) {
     cint = 1;//cint/2;
   }
   else if ((lastAck > 0)  && (cint == (int)lastCW)) {
-    cint += 1; // don't ever stay in a state without exploring up
+    //cint += 1; // don't ever stay in a state without exploring up
   }
   // // make sure %change in cint isn't too spiky : causes delays
   // if ((lastCW > 0) && (cint > (int)lastCW))
