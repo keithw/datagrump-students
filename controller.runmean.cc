@@ -157,7 +157,7 @@ int Controller::chompWindow(int cint, double cwindDL) {
   }
   if ((lastAck > 0) && ((tStamp - lastAck) > (0.5*rttest))) {
     //fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
-    //cint = cint/2;
+    cint = 1;//cint/2;
   }
 
   // make sure %change in cint isn't too spiky : causes delays
