@@ -144,20 +144,20 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     fprintf( stderr, "pop %i, timediff %lu \n",
              runmean.front(),timestamp_ack_received-runmean.front());
     runmean.pop();
-    squeue.pop_back();
-    rqueue.pop_back();
+    stimes.pop_back();
+    rtimes.pop_back();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
-  std::list<int>::const_iterator rIt=rqueue.begin();
-  std::list<int>::const_iterator sIt=squeue.begin();
+  std::list<int>::const_iterator rIt=rtimes.begin();
+  std::list<int>::const_iterator sIt=stimes.begin();
   int diffsum=0;
-  for(; rIt!=rqueue.end() && sIt != squeue.end(); ++rIt, ++sIt){
+  for(; rIt!=rtimes.end() && sIt != stimes.end(); ++rIt, ++sIt){
     int rtime=*rIt;
     int stime=*sIt;
     diffsum+=rtime-stime;
   }
-  double mrtt=diffsum/rqueue;
-  fprintf(stderr "rttmean: $i\n",(int)mrtt);
+  double mrtt=diffsum/rtimes;
+  fprintf(stderr,"rttmean: $i\n",(int)mrtt);
   double bwest=runmean.size()/resolution;
   /*double slope = 0.5414;
   double icept = -1.0402;
