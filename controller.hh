@@ -34,7 +34,10 @@ private:
   double rtt_last_;
   double rtt_min_;
   double rtt_max_;
+  double rtt_sum_;
+  uint64_t acks_count_;
   double rtt_avg_;
+  double rtt_avg_mov_;
   double rtt_ratio_;
 
   uint64_t initial_timestamp_;

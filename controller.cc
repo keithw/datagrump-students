@@ -16,7 +16,10 @@ Controller::Controller( const bool debug )
     rtt_last_(0),
     rtt_min_(-1),
     rtt_max_(0),
+    rtt_sum_(0),
+    acks_count_(0),
     rtt_avg_(0),
+    rtt_avg_mov_(0),
     rtt_ratio_(1.0),
     initial_timestamp_(0),
     last_packet_sent_(0),
@@ -143,14 +146,21 @@ void Controller::update_rtt_stats(const double rtt)
     rtt_max_ = rtt;
   }
 
-  if (rtt_avg_ == 0){
+  if (rtt_avg_mov_ == 0){
     rtt_avg_ = rtt;
   }
   else {
-    rtt_avg_ = params_.AVG*rtt + (1-params_.AVG)*rtt_avg_;
+    rtt_avg_mov_ = params_.AVG*rtt + (1-params_.AVG)*rtt_avg_mov_;
   }
+
+    rtt_sum_ = rtt_sum_ + rtt;
+    acks_count_ = acks_count_ +1;
+    rtt_avg_ = rtt_sum_/acks_count_;
+    fprintf(stdout, "AVG %f \n", rtt_avg_); 
+  
   rtt_ratio_ = rtt/rtt_min_;
 }
+
 
 /* Update capacity estimates after ack received */
 void Controller::update_capacity_stats(
