@@ -10,7 +10,7 @@ using namespace Network;
 Controller::Controller( const bool debug )
   : debug_( debug ), window(15), window_float(15), timeout(1000),
   timeout_float(1000), rtt(0), srtt(0), alpha(0.8), dev(0), rttdev(0),
-  beta(0.8), rtt_rec({0,0,0,0,0}), rsize(sizeof(rtt_rec)/sizeof(float))
+  beta(0.8), rtt_rec({0,0,0,0,0}), rsize(0)
 {
 	/*window = 15;
 	window_float = 15;
@@ -27,6 +27,8 @@ Controller::Controller( const bool debug )
   uint64_t srtt = 1000;
   uint64_t rtt = 1000;
   float alpha = 0.5;*/
+  
+  rsize = sizeof(rtt_rec)/sizeof(float);
 }
 
 /* Get current window size, in packets */
