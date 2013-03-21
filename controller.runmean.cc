@@ -107,6 +107,8 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     runmean.pop();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
+  int dummy = recv_timestamp_acked;
+  int dummy = sequence_number_acked;
   cwind=((double)runmean.size())/resolution*rtt+10;
 }
 
