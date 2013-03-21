@@ -37,7 +37,7 @@ void Controller::estimateParameters() {
 }
 
 
-
+/*
 int Controller::chompWindow(int cint) {
 
   // if we have a zero congestion window, push it out of this regime
@@ -73,11 +73,11 @@ int Controller::chompWindow(int cint) {
   lastCW = cint;
   return cint;
 }
-
+*/
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
-  estimateParameters();
+  //estimateParameters();
   /* Default: fixed window size of one outstanding packet */
   int cint = (int)cwind;
 
@@ -115,7 +115,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* when the ack was received (by sender) */
 {
   refineParameters(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
-  refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
+  //refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
              timestamp_ack_received, sequence_number_acked );
@@ -125,6 +125,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }
 }
 
+/*
 void Controller::refineParameters(const uint64_t sequence_number_acked,
                                /* what sequence number was acknowledged */
                                const uint64_t send_timestamp_acked,
@@ -189,3 +190,4 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
     ++recovery;
   }
 }
+*/
