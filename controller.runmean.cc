@@ -7,7 +7,7 @@
 using namespace Network;
 double cwind;
 std::queue<int>  runmean;
-double resolution = 150;
+double resolution = 200;
 double rtt=60;
 
 /* Default constructor */
@@ -61,7 +61,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
     runmean.pop();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
-  cwind=((double)runmean.size())/resolution*rtt+1;
+  cwind=((double)runmean.size())/resolution*rtt;
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
 	     timestamp_ack_received, sequence_number_acked );
