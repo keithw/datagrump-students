@@ -2,19 +2,31 @@
 #define CONTROLLER_HH
 
 #include <stdint.h>
+#include <set>
+#include <queue>
 
 /* Flow controller interface */
 enum CONTROLLER_MODES { MODE_FIXED_WINDOW_SIZE, MODE_AIMD, MODE_DELAY_TRIGGER, MODE_CONTEST };
 
 class Controller
 {
+public:
+  // How many PROBE_TIMEOUTs have passed?
+  uint64_t probes_count;
+
+  static const int TIMEOUT = 1000;
+  static const int PROBE_TIMEOUT = 10;
+    
 private:
+  // What is acked, we might ask?!
+  std::set < uint64_t > acked;
+  // Sorted in time, who should be acked by that time
+  std::priority_queue < std::pair < uint64_t, uint64_t > > should_acked;
+    
   bool debug_; /* Enables debugging output */
   
   int mode;
-  
-  static const int TIMEOUT = 1000;
-  
+    
   /* AIMD constants here */
   static const double ADDITIVE_INCREASE;
   static const double MULTIPLICATIVE_DECREASE ; //divide by this number

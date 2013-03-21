@@ -1,22 +1,23 @@
 #include <stdio.h>
+#include <set>
+#include <algorithm>
 
 #include "controller.hh"
 #include "timestamp.hh"
 
 using namespace Network;
 
-
 const double Controller::ADDITIVE_INCREASE = 0.2f;
 const double Controller::MULTIPLICATIVE_DECREASE = 10;
 
 const double Controller::DELAY_TRIGGER_DECREASE = 3.0f;
 const double Controller::DELAY_TRIGGER_INCREASE = 2.0f;
-    
+
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), mode (MODE_CONTEST), the_window_size(BASELINE_WINDOW_SIZE)
+    : probes_count(0), acked(), should_acked(), debug_( debug ), mode (MODE_CONTEST),
+      the_window_size(BASELINE_WINDOW_SIZE)
 {
-    
 }
 
 /* Get current window size, in packets */
@@ -39,6 +40,12 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
 				  const uint64_t send_timestamp )
                                   /* in milliseconds */
 {
+    should_acked.push(
+		      std::make_pair(
+			  -(send_timestamp + (DELAY_UPPER_BOUND / PROBE_TIMEOUT) ),
+			  send_timestamp )
+		      );
+    
   /* Default: take no action */
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, sent packet %lu.\n",
@@ -97,8 +104,8 @@ void Controller::ack_received_delay_trigger ( const uint64_t sequence_number_ack
                                /* when the ack was received (by sender) */
 {
   // compute the round trip time
-//  uint64_t to_time = recv_timestamp_acked - send_timestamp_acked;
-//  uint64_t from_time = timestamp_ack_received - recv_timestamp_acked;
+  //  uint64_t to_time = recv_timestamp_acked - send_timestamp_acked;
+  //  uint64_t from_time = timestamp_ack_received - recv_timestamp_acked;
   uint64_t rtt = timestamp_ack_received - send_timestamp_acked;
   
   if ((int)rtt >= DELAY_UPPER_BOUND) {
@@ -130,6 +137,8 @@ void Controller::ack_received_delay_contest ( const uint64_t sequence_number_ack
 			       const uint64_t timestamp_ack_received)
                                /* when the ack was received (by sender) */
 {
+  acked.insert(sequence_number_acked);
+    
   // compute the round trip time
   uint64_t to_time = recv_timestamp_acked - send_timestamp_acked;
   uint64_t from_time = timestamp_ack_received - recv_timestamp_acked;
@@ -196,7 +205,35 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 
 void Controller::acknowledgment_timeout( void )
 {
-    fprintf( stderr,"Received acknowledgment timeout.\n" );
+    if ( debug_ ) {
+	fprintf( stderr,"Received acknowledgment timeout.\n" );
+    }
+
+    probes_count++;
+
+    bool preempt = false;
+    while ( !should_acked.empty() ) {
+	uint64_t
+	    sha = -should_acked.top().first,
+	    id = should_acked.top().second;
+	    
+	if (sha > probes_count) {
+	    // nothing fancy going on here.
+	    break;
+	}
+
+	if (acked.find(id) != acked.end() && !preempt) {
+	    // Instantiate preemptive algorithm;
+	    
+	    // This is COPIED! need to factor out later.
+	    the_window_size -= DELAY_TRIGGER_DECREASE;
+	    if (the_window_size <= CONSERVATIVE_WINDOW_SIZE)
+		the_window_size = CONSERVATIVE_WINDOW_SIZE;
+	    
+	    preempt = true;
+	}
+	should_acked.pop();
+    }
     
     switch(mode) {
         case MODE_AIMD:
@@ -219,6 +256,6 @@ unsigned int Controller::timeout_ms( void )
     case MODE_AIMD:
         return AIMD_TIMEOUT;
         break;
-    }
-    return TIMEOUT; /* timeout of one second */
+  }
+  return PROBE_TIMEOUT; /* Be preemptive, utilizing sender's timeout; */
 }

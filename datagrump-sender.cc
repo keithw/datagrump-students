@@ -60,13 +60,16 @@ int main( int argc, char *argv[] )
 	throw string( "poll returned error." );
       } else if ( packet_received == 0 ) { /* timeout */
 	/*notify the controller of a timeout */
-    controller.acknowledgment_timeout();
-    
-    /* send a packet */
-	Packet x( destination, sequence_number++ );
-	sock.send( x );
-	controller.packet_was_sent( x.sequence_number(),
-				    x.send_timestamp() );
+	controller.acknowledgment_timeout();
+
+	uint64_t tmprobes = Controller::TIMEOUT / Controller::PROBE_TIMEOUT;
+	if (controller.probes_count % tmprobes == 0) {
+	    /* send a packet */
+	    Packet x( destination, sequence_number++ );
+	    sock.send( x );
+	    controller.packet_was_sent( x.sequence_number(),
+					x.send_timestamp() );
+	}
       } else {
 	/* we got an acknowledgment */
 	Packet ack = sock.recv();
