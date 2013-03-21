@@ -138,7 +138,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     if(mrtt< (rtt/2+rtteps/2) && ((timestamp_ack_received-lastspike)>(rtt))){
       cwind=bwest*(rtt+2*rtteps);
       lastspike=timestamp_ack_received;
-      fprintf(stdout,"T:%i;SR:%i;RS:%i;BWE:%.4f,CW:%.4f;S:TRUE,MRTT:%.4f\n",
+      fprintf(stdout,"%i,%i,%i,%.4f,%.4f,TRUE,%.4f\n",
 	      (int)(timestamp_ack_received-start_time),
 	      (int)(recv_timestamp_acked-send_timestamp_acked),
 	      (int)(timestamp_ack_received-recv_timestamp_acked),
@@ -147,7 +147,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
 	      mrtt);
     }else{
       cwind= bwest*(rtt+rtteps);
-      fprintf(stdout,"T:%i;SR:%i;RS:%i;BWE:%.4f,CW:%.4f;S:FALSE,MRTT:%.4f\n",
+      fprintf(stdout,"%i,%i,%i,%.4f,%.4f,FALSE,%.4f\n",
 	      (int)(timestamp_ack_received-start_time),
 	      (int)(recv_timestamp_acked-send_timestamp_acked),
 	      (int)(timestamp_ack_received-recv_timestamp_acked),
@@ -157,7 +157,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     }
   }else{
     cwind= bwest*(rtt+rtteps);
-      fprintf(stdout,"T:%i;SR:%i;RS:%i;BWE:%.4f,CW:%.4f;S:FALSE,MRTT:-1\n",
+      fprintf(stdout,"%i,%i,%i,%.4f,%.4f,FALSE,-1\n",
 	      (int)(timestamp_ack_received-start_time),
 	      (int)(recv_timestamp_acked-send_timestamp_acked),
 	      (int)(timestamp_ack_received-recv_timestamp_acked),
