@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <deque>
+#include <algorithm>    // std::max
 
 using namespace Network;
 
@@ -51,6 +52,7 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
 int cwnd_fraction = 0;
 uint64_t avg_rtt = 0;
 int multi_dec_cooldown = 0;
+int max_interval = 0;
 /* An ack was received */
 void Controller::ack_received( const uint64_t sequence_number_acked,
 			       /* what sequence number was acknowledged */
@@ -69,19 +71,16 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   packet_times.pop_front();
   fprintf(stdout, "new ack diff: %lu , cwnd: %i \n", diff, the_window_size);
 
-  // loop through first 10 diffs to get average RTT over most recent acks
-  if(time_diffs.size() < 10) {
-    // if haven't recieved 10 diffs yet.
-    
-  } else {    
-    for(int i=0; i<10; i++)
-      {
-	avg_rtt += time_diffs[i];
-      }
-    avg_rtt /= 10;
+  // loop through up to first 10 diffs to get average RTT over most recent acks
+  max_interval = std::max((int) time_diffs.size(),10);
+  avg_rtt = 0;
+  for(int i=0; i<max_interval; i++) {
+    avg_rtt += time_diffs[i];
   }
+  avg_rtt /= max_interval;
   
-  if (avg_rtt > 200) { // detecting congestion TODO: MAGIC NUMBER
+  // Congestion detection
+  if (avg_rtt > 200) { // TODO: MAGIC NUMBER
     if (multi_dec_cooldown == 0) { // multiplicative decrease
       the_window_size /= 2; // TODO: MAGIC NUMBER FROM TCP
       multi_dec_cooldown = 10; // enter cooldown period TODO: MAGIC NUMBER
