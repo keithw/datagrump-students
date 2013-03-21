@@ -156,8 +156,8 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     int stime=*sIt;
     diffsum+=rtime-stime;
   }
-  double mrtt=diffsum/rtimes;
-  fprintf(stderr,"rttmean: $i\n",(int)mrtt);
+  double mrtt=diffsum/((int)rtimes.size());
+  fprintf(stderr,"rttmean: %i\n",(int)mrtt);
   double bwest=runmean.size()/resolution;
   /*double slope = 0.5414;
   double icept = -1.0402;
