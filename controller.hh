@@ -22,7 +22,7 @@ private:
   float rttdev;
   float beta;
   float rtt_rec [5];
-  int rsize;
+  //int rsize;
 
 public:
   /* Public interface for the flow controller */
