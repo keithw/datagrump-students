@@ -235,10 +235,10 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
                                   const uint64_t send_timestamp_acked,
                                   const uint64_t recv_timestamp_acked,
                                   const uint64_t timestamp_ack_received ){
-  assert(sequence_number_acked >=0);
-  assert(send_timestamp_acked >= 0);
-  assert(recv_timestamp_acked >= 0);
-  assert(timestamp_ack_received >= 0);
+  if (sequence_number_acked == 0)
+    fprintf(stderr, "acked first packet\n");
+  assert(send_timestamp_acked <= timestamp_ack_received);
+  assert(recv_timestamp_acked <= timestamp_ack_received);
 
   if (lastAck == 0) {
     //lastAck = recv_timestamp_acked;
