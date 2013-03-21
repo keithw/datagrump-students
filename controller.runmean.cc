@@ -100,15 +100,15 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
                                /* when the acknowledged packet was received */
                                const uint64_t timestamp_ack_received )
 {
-  runmean.push(send_timestamp_acked);
+  runmean.push(timestamp_ack_received);
   while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt/2)){
     fprintf( stderr, "pop %i, timediff %lu \n",
              runmean.front(),timestamp_ack_received-runmean.front());
     runmean.pop();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
-  if(cwind >= runmean.size()/resolution*rtt){
-    cwind= runmean.size()/resolution*rtt+1;
+  if(cwind >= runmean.size()/resolution*rtt-5){
+    cwind= runmean.size()/resolution*rtt+5;
   }else{
     cwind=((double)runmean.size())/resolution*rtt*1.2+0.05811*rtt;
   }
@@ -125,5 +125,5 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 1000; /* timeout of one second */
+  return 10000; /* timeout of one second */
 }
