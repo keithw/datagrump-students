@@ -111,7 +111,7 @@ double Controller::estimateParameters() {
   if (ackRateObs > ackRateEst) {
     // if we are getting acks faster => network has recoved and queue is
     // being flushed and we are getting fast responses
-    double wt = 0.5;
+    double wt = 0.75;
     fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
     cwind = wt*cwindDL + (1-wt)*cwind;
   } else {
@@ -162,11 +162,11 @@ int Controller::chompWindow(int cint, double cwindDL) {
   else if ((lastAck > 0)  && (cint == (int)lastCW)) {
     cint += 1; // don't ever stay in a state without exploring up
   }
-  // make sure %change in cint isn't too spiky : causes delays
-  if ((lastCW > 0) && (cint > (int)lastCW))
-    if ((cint - lastCW)/float(lastCW) > 2) // change by more than 200%
-      cint = 2*lastCW; // can't be anything less than 2 since we are dealing with
-                       // integers. May give issues with small numbers
+  // // make sure %change in cint isn't too spiky : causes delays
+  // if ((lastCW > 0) && (cint > (int)lastCW))
+  //   if ((cint - lastCW)/float(lastCW) > 2) // change by more than 200%
+  //     cint = 2*lastCW; // can't be anything less than 2 since we are dealing with
+  //                      // integers. May give issues with small numbers
 
   if ( debug_ ) {
     fprintf( fsend, "@%lu, %d, %.4f, %.4f, %.4f, %u, %.2f, %.1f, %lu\n",
