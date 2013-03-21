@@ -82,21 +82,6 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
                                const uint64_t timestamp_ack_received )
 /* when the ack was received (by sender) */
 {
-  runmean.push(timestamp_ack_received);
-  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt)){
-    fprintf( stderr, "pop %i, timediff %lu \n",
-	     runmean.front(),timestamp_ack_received-runmean.front());
-    runmean.pop();
-  }
-  fprintf(stderr, "size: %i\n",(int)runmean.size());
-  cwind=((double)runmean.size())/resolution*rtt;
-  if ( debug_ ) {
-    fprintf( stderr, "At time %lu, received ACK for packet %lu",
-	     timestamp_ack_received, sequence_number_acked );
-
-    fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
-	     send_timestamp_acked, recv_timestamp_acked );
-  }/*
   refineParameters(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
   //refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
   if ( debug_ ) {
@@ -105,7 +90,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
              send_timestamp_acked, recv_timestamp_acked );
-  }*/
+  }
 }
 
 
@@ -113,6 +98,63 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 //////////////////////////////////////////////////
 // adjustments and updates
 //////////////////////////////////////////////////
+
+void Controller::refineParameters(const uint64_t sequence_number_acked,
+                               /* what sequence number was acknowledged */
+                               const uint64_t send_timestamp_acked,
+                               /* when the acknowledged packet was sent */
+                               const uint64_t recv_timestamp_acked,
+                               /* when the acknowledged packet was received */
+                               const uint64_t timestamp_ack_received )
+{
+  rtteps=10
+  //push new packet info onto queue
+  stimes.push_front(send_timestamp_acked);
+  rtimes.push_front(recv_timestamp_acked);
+  runmean.push(send_timestamp_acked);
+  //trim queue to only include last (resolution+rtt/2) of packets.
+  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt+rtteps)){
+    fprintf( stderr, "pop %i, timediff %lu \n",
+             runmean.front(),timestamp_ack_received-runmean.front());
+    runmean.pop();
+    stimes.pop_back();
+    rtimes.pop_back();
+  }
+  fprintf(stderr, "size: %i\n",(int)runmean.size());
+  std::list<int>::const_iterator rIt=rtimes.begin();
+  std::list<int>::const_iterator sIt=stimes.begin();
+  int diffsum=0;
+  for(; rIt!=rtimes.end() && sIt != stimes.end(); ++rIt, ++sIt){
+    int rtime=*rIt;
+    int stime=*sIt;
+    diffsum+=rtime-stime;
+  }
+  double mrtt=diffsum/((int)rtimes.size());
+  fprintf(stderr,"rttmean: %i\n",(int)mrtt);
+  double bwest=((double)runmean.size())/resolution;
+  /*double slope = 0.5414;
+  double icept = -1.0402;
+  double tfbest = 2*sqrt(runmean.size()+3/8)*slope+icept;
+  double bwest=(tfbest*tfbest/4-1/8)/20;*/
+  // if RTT strongly caps out, drain queue by aiming for < RTT worth of buffer
+    // RTT indicates non-trucation, aim for steady state of 20ms queue delay
+  cwind= bwest*(rtt+rtteps);
+  /*
+  if(mrtt > (rtt/2+5)){
+    cwind= bwest*(rtt+20);
+  }else{
+    // RTT indicates truncation, aim for 0.75 quantile bw, 20ms delay
+    cwind= (bwest+sqrt(bwest*100)*0.598/100+1.11023/100)*(rtt+20);//+20;
+    }*/
+  if ( debug_ ) {
+    fprintf( stderr, "At time %lu, received ACK for packet %lu",
+             timestamp_ack_received, sequence_number_acked );
+
+    fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
+             send_timestamp_acked, recv_timestamp_acked );
+  }
+}
+
 
 
 double Controller::estimateParameters() {
@@ -193,60 +235,6 @@ int Controller::chompWindow(int cint, double cwindDL) {
   return cint;
 }
 
-void Controller::refineParameters(const uint64_t sequence_number_acked,
-                               /* what sequence number was acknowledged */
-                               const uint64_t send_timestamp_acked,
-                               /* when the acknowledged packet was sent */
-                               const uint64_t recv_timestamp_acked,
-                               /* when the acknowledged packet was received */
-                               const uint64_t timestamp_ack_received )
-{
-  //push new packet info onto queue
-  stimes.push_front(send_timestamp_acked);
-  rtimes.push_front(recv_timestamp_acked);
-  runmean.push(send_timestamp_acked);
-  //trim queue to only include last (resolution+rtt/2) of packets.
-  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt)){
-    fprintf( stderr, "pop %i, timediff %lu \n",
-             runmean.front(),timestamp_ack_received-runmean.front());
-    runmean.pop();
-    stimes.pop_back();
-    rtimes.pop_back();
-  }
-  fprintf(stderr, "size: %i\n",(int)runmean.size());
-  std::list<int>::const_iterator rIt=rtimes.begin();
-  std::list<int>::const_iterator sIt=stimes.begin();
-  int diffsum=0;
-  for(; rIt!=rtimes.end() && sIt != stimes.end(); ++rIt, ++sIt){
-    int rtime=*rIt;
-    int stime=*sIt;
-    diffsum+=rtime-stime;
-  }
-  double mrtt=diffsum/((int)rtimes.size());
-  fprintf(stderr,"rttmean: %i\n",(int)mrtt);
-  double bwest=((double)runmean.size())/resolution;
-  /*double slope = 0.5414;
-  double icept = -1.0402;
-  double tfbest = 2*sqrt(runmean.size()+3/8)*slope+icept;
-  double bwest=(tfbest*tfbest/4-1/8)/20;*/
-  // if RTT strongly caps out, drain queue by aiming for < RTT worth of buffer
-    // RTT indicates non-trucation, aim for steady state of 20ms queue delay
-  cwind= bwest*(rtt+20);
-  /*
-  if(mrtt > (rtt/2+5)){
-    cwind= bwest*(rtt+20);
-  }else{
-    // RTT indicates truncation, aim for 0.75 quantile bw, 20ms delay
-    cwind= (bwest+sqrt(bwest*100)*0.598/100+1.11023/100)*(rtt+20);//+20;
-    }*/
-  if ( debug_ ) {
-    fprintf( stderr, "At time %lu, received ACK for packet %lu",
-             timestamp_ack_received, sequence_number_acked );
-
-    fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
-             send_timestamp_acked, recv_timestamp_acked );
-  }
-}
 
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
