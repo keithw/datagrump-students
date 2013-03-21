@@ -25,7 +25,7 @@ Controller::Controller( const bool debug )
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
     resolution(200),
-    rtt(60),
+    rtt(40),
     rttsum(400),
     rttn(10),
     ackTracker(0.0),
@@ -115,57 +115,64 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   runmean.push(timestamp_ack_received);
   //trim queue to only include last (resolution+rtt/2) of packets.
   while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution)){
-    fprintf( stderr, "pop %i, timediff %lu \n",
-             runmean.front(),timestamp_ack_received-runmean.front());
+    /*fprintf( stderr, "pop %i, timediff %lu \n",
+      runmean.front(),timestamp_ack_received-runmean.front());*/
     runmean.pop();
     stimes.pop_back();
     rtimes.pop_back();
   }
-  fprintf(stderr, "size: %i\n",(int)runmean.size());
+  //fprintf(stderr, "size: %i\n",(int)runmean.size());
   double bwest=((double)runmean.size())/resolution;
   if(rtimes.size()>0){
     std::list<int>::const_iterator rIt=rtimes.begin();
     std::list<int>::const_iterator sIt=stimes.begin();
     int diffsum=0;
     for(; (rIt!=rtimes.end() && sIt != stimes.end()); ++rIt, ++sIt){
-      fprintf(stderr,"iter");
     int rtime= *rIt;
     int stime= *sIt;
     diffsum+=rtime-stime;
     }
     double mrtt=diffsum/((int)rtimes.size());
-    fprintf(stderr,"rttmean: %i\n",(int)mrtt);
+    //fprintf(stderr,"rttmean: %i\n",(int)mrtt);
     // if our RTT is low and stable with at least 2xRTT our last time
     if(mrtt< (rtt+rtteps/2) && ((timestamp_ack_received-lastspike)<(2*rtt))){
       cwind=bwest*(rtt+2*rtteps);
       lastspike=timestamp_ack_received;
+      fprintf(stdout,'T:%i;SR:%i;RS:%i;BWE:%.4f,CW:%.4f;S:TRUE,MRTT:%.4f',
+	      (int)(timestamp_ack_received-start_time),
+	      (int)(recv_timestamp_acked-send_timestamp_acked),
+	      (int)(timestamp_ack_received-recv_timestamp_acked),
+	      bwest,
+	      cwind,
+	      mrtt);
     }else{
       cwind= bwest*(rtt+rtteps);
+      fprintf(stdout,'T:%i;SR:%i;RS:%i;BWE:%.4f,CW:%.4f;S:FALSE,MRTT:%.4f',
+	      (int)(timestamp_ack_received-start_time),
+	      (int)(recv_timestamp_acked-send_timestamp_acked),
+	      (int)(timestamp_ack_received-recv_timestamp_acked),
+	      bwest,
+	      cwind,
+	      mrtt);
     }
   }else{
     cwind= bwest*(rtt+rtteps);
+      fprintf(stdout,'T:%i;SR:%i;RS:%i;BWE:%.4f,CW:%.4f;S:FALSE,MRTT:-1',
+	      (int)(timestamp_ack_received-start_time),
+	      (int)(recv_timestamp_acked-send_timestamp_acked),
+	      (int)(timestamp_ack_received-recv_timestamp_acked),
+	      bwest,
+	      cwind,
+	      mrtt);
   }
-  /*double slope = 0.5414;
-  double icept = -1.0402;
-  double tfbest = 2*sqrt(runmean.size()+3/8)*slope+icept;
-  double bwest=(tfbest*tfbest/4-1/8)/20;*/
-  // if RTT strongly caps out, drain queue by aiming for < RTT worth of buffer
-    // RTT indicates non-trucation, aim for steady state of 20ms queue delay
-
-  /*
-  if(mrtt > (rtt/2+5)){
-    cwind= bwest*(rtt+20);
-  }else{
-    // RTT indicates truncation, aim for 0.75 quantile bw, 20ms delay
-    cwind= (bwest+sqrt(bwest*100)*0.598/100+1.11023/100)*(rtt+20);//+20;
-    }*/
-  if ( debug_ ) {
+  /*if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
              timestamp_ack_received, sequence_number_acked );
 
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
              send_timestamp_acked, recv_timestamp_acked );
   }
+  */
 }
 
 
