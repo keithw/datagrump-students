@@ -132,7 +132,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   }
   double mrtt=diffsum/((int)rtimes.size());
   fprintf(stderr,"rttmean: %i\n",(int)mrtt);
-  double bwest=((double)runmean.size())/resolution;
+  //double bwest=((double)runmean.size())/resolution;
   // if our RTT is low and stable with at least 2xRTT our last time
   /*if(mrtt< (rtt+rtteps/2) && ((timestamp_ack_received-lastspike)<(2*rtt))){
     cwind=bwest*(rtt+2*rtteps);
