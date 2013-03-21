@@ -12,11 +12,11 @@ private:
 
   /* Add member variables here */
   unsigned int window;
-  unsigned int timeout;
   float window_float;
+  unsigned int timeout;
   float timeout_float;
-  uint64_t srtt;
   uint64_t rtt;
+  uint64_t srtt;
   float alpha;
 
 public:
