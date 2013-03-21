@@ -143,14 +143,17 @@ void Controller::ack_received_delay_contest ( const uint64_t sequence_number_ack
   uint64_t to_time = recv_timestamp_acked - send_timestamp_acked;
   uint64_t from_time = timestamp_ack_received - recv_timestamp_acked;
   uint64_t rtt = to_time + from_time;
-  
+
+  // Don't need this here anymore not to act twice.
+  /*
   if ((int)rtt >= DELAY_UPPER_BOUND) {
         //decrease the window size by some amount
         the_window_size -= DELAY_TRIGGER_DECREASE;
         if (the_window_size <= CONSERVATIVE_WINDOW_SIZE)
             the_window_size = CONSERVATIVE_WINDOW_SIZE;
-        
-  } else if ((int)rtt <= DELAY_LOWER_BOUND) {
+  */
+	    
+  if ((int)rtt <= DELAY_LOWER_BOUND) {
         the_window_size += DELAY_TRIGGER_INCREASE/the_window_size;
   }
   
