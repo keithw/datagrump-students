@@ -1,2 +1,4 @@
-
 *.o
+datagrump-sender
+datagrump-receiver
+depend
