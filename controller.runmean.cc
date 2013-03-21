@@ -85,7 +85,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* when the ack was received (by sender) */
 {
   refineParameters(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
-  //refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
+  refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
              timestamp_ack_received, sequence_number_acked );
@@ -174,6 +174,7 @@ int Controller::chompWindow(int cint, double cwindDL) {
     fprintf( fsend, "@%lu, %d, %.4f, %.4f, %.4f, %u, %.2f, %.1f, %lu\n",
              (tStamp - start_time), cint, cwindDL, cwind, ackTracker, lastCW, ackLastDelta, rttest, (lastAck > 0) ? (tStamp - lastAck) : 0);
   }
+  if (lastAck == 0) cint = 5;
 
   lastCW = cint;
   return cint;
