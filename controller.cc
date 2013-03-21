@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <cmath>
 
 #include "controller.hh"
 #include "timestamp.hh"
@@ -93,7 +94,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   timeout_float = srtt + (4*rttdev);
   
   float avg = 0;
-  for ( n=0 ; n<rsize ; n++ ){
+  for (int n=0 ; n<rsize ; n++ ){
   	avg = avg + (rtt_rec[n]/rsize);
   }
   
@@ -104,7 +105,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   	window_float = window_float - (0.5/window);
   }
   
-  for ( n=0 ; n<(rsize-1) ; n++ ){
+  for (int n=0 ; n<(rsize-1) ; n++ ){
   	rtt_rec[n] = rtt_rec[n+1];
   }
   rtt_rec[rsize-1] = rtt;
