@@ -8,7 +8,7 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), window(25), window_float(25), timeout(1500),
+  : debug_( debug ), window(15), window_float(15), timeout(1500),
   timeout_float(1500), rtt(0), srtt(0), alpha(0.8), dev(0), rttdev(0),
   beta(0.8), rtt_rec{0,0,0,0,0}, rsize(sizeof(rtt_rec)/sizeof(float))
 {
@@ -83,35 +83,35 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }
   
   
-  rtt = timestamp_ack_received - send_timestamp_acked;
-  //int rsize = 5;//sizeof(rtt_rec)/sizeof(float);
-  
-  /*if (srtt == 0){
-  	srtt = rtt;
-  }*/
-  
-  srtt = (alpha*rtt) + ((1-alpha)*srtt);
-  dev = rtt - srtt;
-  dev = dev>0?dev:0-dev;
-  rttdev = (beta*dev) + ((1-beta)*rttdev);
-  timeout_float = srtt + (4*rttdev);
-  
-  float avg = 0;
-  for (int n=0 ; n<rsize ; n++ ){
-  	avg = avg + (rtt_rec[n]/rsize);
-  }
-  
-  if (rtt > avg){
-  	window_float = window_float + (1.5/window);
-  }
-  else{
-  	window_float = window_float - (1.0/window);
-  }
-  
-  for (int n=0 ; n<(rsize-1) ; n++ ){
-  	rtt_rec[n] = rtt_rec[n+1];
-  }
-  rtt_rec[rsize-1] = rtt;
+  // rtt = timestamp_ack_received - send_timestamp_acked;
+//   //int rsize = 5;//sizeof(rtt_rec)/sizeof(float);
+//   
+//   /*if (srtt == 0){
+//   	srtt = rtt;
+//   }*/
+//   
+//   srtt = (alpha*rtt) + ((1-alpha)*srtt);
+//   dev = rtt - srtt;
+//   dev = dev>0?dev:0-dev;
+//   rttdev = (beta*dev) + ((1-beta)*rttdev);
+//   timeout_float = srtt + (4*rttdev);
+//   
+//   float avg = 0;
+//   for (int n=0 ; n<rsize ; n++ ){
+//   	avg = avg + (rtt_rec[n]/rsize);
+//   }
+//   
+//   if (rtt > avg){
+//   	window_float = window_float + (1.5/window);
+//   }
+//   else{
+//   	window_float = window_float - (1.0/window);
+//   }
+//   
+//   for (int n=0 ; n<(rsize-1) ; n++ ){
+//   	rtt_rec[n] = rtt_rec[n+1];
+//   }
+//   rtt_rec[rsize-1] = rtt;
   
 }
 
@@ -129,5 +129,5 @@ void Controller::timout_detected(void)
     fprintf( stderr, "Timeout Detected. \n" );
   }
   
-	window_float = window_float/2;
+	//window_float = window_float/2;
 }
