@@ -7,8 +7,6 @@
 using namespace Network;
 double cwind;
 std::queue<int>  runmean;
-double resolution = 200;
-double rtt=60;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
@@ -16,7 +14,7 @@ Controller::Controller( const bool debug )
     cwind(0.001),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
-    resolution(200),
+    resolution(100),
     rtt(40),
     rttsum(400),
     rttn(10),
@@ -103,14 +101,13 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
                                const uint64_t timestamp_ack_received )
 {
   runmean.push(send_timestamp_acked);
-
   while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt)){
     fprintf( stderr, "pop %i, timediff %lu \n",
              runmean.front(),timestamp_ack_received-runmean.front());
     runmean.pop();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
-  cwind=((double)runmean.size())/resolution*rtt;
+  cwind=((double)runmean.size())/resolution*rtt+10;
 }
 
 /* How long to wait if there are no acks before sending one more packet */
