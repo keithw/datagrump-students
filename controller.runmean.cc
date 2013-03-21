@@ -169,7 +169,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     cwind= bwest*(rtt+20);
   }else{
     // RTT indicates truncation, aim for 0.75 quantile bw, 20ms delay
-    cwind= (bwest+sqrt(bwest*100)*0.598/100+1.11023/100)*(rtt+20)+20;
+    cwind= (bwest+sqrt(bwest*100)*0.598/100+1.11023/100)*(rtt+20);//+20;
   }
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
