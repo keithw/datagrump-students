@@ -33,28 +33,10 @@ Controller::Controller( const bool debug )
  {
   start_time = timestamp();
   fprintf( stderr, "startTime %lu\n", start_time);
-}
+ }
 
 
 
-int Controller::trimRunmean(const uint64_t tstamp) {
-  while(runmean.size()>0 && (tstamp-runmean.front())>(resolution)){
-    fprintf( stderr, "pop %i, timediff %lu \n",
-       runmean.front(),tstamp-runmean.front());
-    runmean.pop();
-  }
-  int rmsize = (int)runmean.size();
-  return rmsize;
-}
-
-int Controller::getRmsize(const uint64_t tstamp, double res) {
-  int sz = runmean.size();
-  while(runmean.size()>0 && (tstamp-runmean.front())>(res))
-    --sz;
-
-  int rmsize = sz;
-  return rmsize;
-}
 
 
 /* Get current window size, in packets */
@@ -177,7 +159,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
       double d = ackLastDelta / (double)recovery;
       ackTracker -= rho * (ackLastDelta - d);
       for (unsigned int i=1; i< recovery; i++)
-  ackTracker = (1-rho)*ackTracker + rho*d;
+        ackTracker = (1-rho)*ackTracker + rho*d;
       recovery = 0;
     }
     ackLastDelta = (recv_timestamp_acked-lastAck);

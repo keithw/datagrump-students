@@ -13,8 +13,6 @@ private:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
-  int trimRunmean(const uint64_t tstamp);
-  int getRmsize(const uint64_t tstamp, double res);
 public:
   /* Public interface for the flow controller */
   /* You can change these if you prefer, but will need to change
@@ -57,6 +55,9 @@ public:
   unsigned int lastCW ;
   uint64_t start_time ;
 
+  void estimateParameters();
+  void refineParameters();
+  int chompWindow(int cint);
 };
 
 #endif

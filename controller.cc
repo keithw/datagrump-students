@@ -1,1 +1,1 @@
-controller.fastRunmeanQ.cc
+controller.runmean.cc
