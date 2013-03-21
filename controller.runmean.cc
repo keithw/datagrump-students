@@ -34,7 +34,8 @@ Controller::Controller( const bool debug )
     recovery(0),
     lastPB(0),
     lastCW(0),
-    start_time(timestamp())
+    start_time(timestamp()),
+    rho(0.25)
 {
   start_time = timestamp();
   fprintf( stderr, "startTime %lu\n", start_time);
@@ -160,7 +161,7 @@ int Controller::chompWindow(int cint, double cwindDL) {
     cint = 1;//cint/2;
   }
   else if ((lastAck > 0)  && (cint == (int)lastCW)) {
-    //cint += 1; // don't ever stay in a state without exploring up
+    cint += 1; // don't ever stay in a state without exploring up
   }
   // // make sure %change in cint isn't too spiky : causes delays
   // if ((lastCW > 0) && (cint > (int)lastCW))
@@ -241,15 +242,15 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
                                   const uint64_t send_timestamp_acked,
                                   const uint64_t recv_timestamp_acked,
                                   const uint64_t timestamp_ack_received ){
-  double rho = 0.25;
+  rho = 0.25;
   while (burstPackets.size() > 0) {
     if (sequence_number_acked <= burstPackets.front().second) break;
     burstPackets.pop_front();
   }
   if (burstPackets.size() > 0) {
-    if (sequence_number_acked == burstPackets.front().first) rho = 0.0;
-    else if ((sequence_number_acked >  burstPackets.front().first) &&
-             (sequence_number_acked <= burstPackets.front().second))
+    //if (sequence_number_acked == burstPackets.front().first) rho = 0.0;
+    if ((sequence_number_acked >  burstPackets.front().first) &&
+        (sequence_number_acked <= burstPackets.front().second))
       rho = 0.9;
   }
   assert(send_timestamp_acked <= timestamp_ack_received);

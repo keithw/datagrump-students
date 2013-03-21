@@ -54,6 +54,7 @@ public:
   unsigned int lastPB ;
   unsigned int lastCW ;
   uint64_t start_time ;
+  double rho;
 
   double estimateParameters();
   void refineParameters(const uint64_t sequence_number_acked,
