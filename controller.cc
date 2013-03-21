@@ -89,7 +89,8 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }*/
   
   srtt = (alpha*rtt) + ((1-alpha)*srtt);
-  dev = abs(rtt - srtt);
+  dev = rtt - srtt;
+  dev = dev>0?dev:0-dev;
   rttdev = (beta*dev) + ((1-beta)*rttdev);
   timeout_float = srtt + (4*rttdev);
   
