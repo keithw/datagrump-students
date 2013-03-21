@@ -126,7 +126,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   std::list<int>::const_iterator sIt=stimes.begin();
   int diffsum=0;
   for(; (rIt!=rtimes.end() && sIt != stimes.end()); ++rIt, ++sIt){
-    fprintf(stderr,'iter');
+    fprintf(stderr,"iter");
     int rtime= *rIt;
     int stime= *sIt;
     diffsum+=rtime-stime;
