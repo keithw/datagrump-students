@@ -8,8 +8,8 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), window(15), window_float(15), timeout(1000),
-  timeout_float(1000), rtt(0), srtt(0), alpha(0.8), dev(0), rttdev(0),
+  : debug_( debug ), window(15), window_float(15), timeout(1500),
+  timeout_float(1500), rtt(0), srtt(0), alpha(0.8), dev(0), rttdev(0),
   beta(0.8), rtt_rec{0,0,0,0,0}, rsize(sizeof(rtt_rec)/sizeof(float))
 {
 	/*window = 15;
@@ -102,7 +102,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }
   
   if (rtt > avg){
-  	window_float = window_float + (2.75/window);
+  	window_float = window_float + (1.5/window);
   }
   else{
   	window_float = window_float - (0.75/window);
@@ -126,7 +126,7 @@ unsigned int Controller::timeout_ms( void )
 void Controller::timout_detected(void)
 {
 	if ( debug_ ) {
-    fprintf( stderr, "Timeout Detected" );
+    fprintf( stderr, "Timeout Detected. \n" );
   }
   
 	window_float = window_float/2;
