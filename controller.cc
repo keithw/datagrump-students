@@ -69,19 +69,19 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   uint64_t diff = timestamp_ack_received - packet_times.front();
   time_diffs.push_front(diff);
   packet_times.pop_front();
-  fprintf(stdout, "new ack diff: %lu , cwnd: %i ,", diff, the_window_size);
+  fprintf(stdout, "new ack diff: %lu ,", diff);
 
   // loop through up to first 10 diffs to get average RTT over most recent acks
-  max_samples = std::min((int) time_diffs.size(),10); // 10 samples or less
+  max_samples = std::min((int) time_diffs.size(),6); // 10 samples or less
   avg_rtt = 0;
   for(int i=0; i<max_samples; i++) {
     avg_rtt += time_diffs[i];
   }
   avg_rtt /= max_samples;
-  fprintf(stdout, " new avg: %lu \n", avg_rtt);
+  fprintf(stdout, " new avg: %lu , cwnd: %i \n", avg_rtt, the_window_size);
   
   // Congestion detection
-  if (avg_rtt > 200) { // TODO: MAGIC NUMBER
+  if (avg_rtt > 100) { // TODO: MAGIC NUMBER
     if (multi_dec_cooldown == 0) { // multiplicative decrease
       the_window_size /= 2; // TODO: MAGIC NUMBER FROM TCP
       multi_dec_cooldown = 2; // enter cooldown period TODO: MAGIC NUMBER
@@ -92,9 +92,9 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }
   
   // ACK received, do additive increase
-  // increment by 1/cwnd, use cwnd_fraction to keep track of fractional increment
+  // increment by x/cwnd, use cwnd_fraction to keep track of fractional increment
   // of cwnd, until add up to one cwnd size.
-  cwnd_fraction++;
+  cwnd_fraction += 3;
   if (cwnd_fraction >= the_window_size) {
     cwnd_fraction = 0;
     the_window_size += 1;
