@@ -52,7 +52,7 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
 int cwnd_fraction = 0;
 uint64_t avg_rtt = 0;
 int multi_dec_cooldown = 0;
-int max_interval = 0;
+int max_samples = 0;
 /* An ack was received */
 void Controller::ack_received( const uint64_t sequence_number_acked,
 			       /* what sequence number was acknowledged */
@@ -69,21 +69,23 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   uint64_t diff = timestamp_ack_received - packet_times.front();
   time_diffs.push_front(diff);
   packet_times.pop_front();
-  fprintf(stdout, "new ack diff: %lu , cwnd: %i \n", diff, the_window_size);
+  fprintf(stdout, "new ack diff: %lu , cwnd: %i ,", diff, the_window_size);
 
   // loop through up to first 10 diffs to get average RTT over most recent acks
-  max_interval = std::max((int) time_diffs.size(),10);
+  max_samples = std::min((int) time_diffs.size(),10); // 10 samples or less
   avg_rtt = 0;
-  for(int i=0; i<max_interval; i++) {
+  for(int i=0; i<max_samples; i++) {
     avg_rtt += time_diffs[i];
   }
-  avg_rtt /= max_interval;
+  avg_rtt /= max_samples;
+  fprintf(stdout, " new avg: %lu \n", avg_rtt);
   
   // Congestion detection
   if (avg_rtt > 200) { // TODO: MAGIC NUMBER
     if (multi_dec_cooldown == 0) { // multiplicative decrease
       the_window_size /= 2; // TODO: MAGIC NUMBER FROM TCP
-      multi_dec_cooldown = 10; // enter cooldown period TODO: MAGIC NUMBER
+      multi_dec_cooldown = 5; // enter cooldown period TODO: MAGIC NUMBER
+      time_diffs.clear(); // clear timestamp diff duration array to react more quickly after decrease
     } else {// in cooldown period, skip mul. dec. so cwnd doesn't collapse
       multi_dec_cooldown--;
     }
