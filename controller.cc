@@ -9,7 +9,10 @@ using namespace Network;
 Controller::Controller( const bool debug )
   : debug_( debug )
 {
-	window = 16;
+	window = 15;
+	rtt = 1000;
+	srtt = 1000;
+	alpha = 0.5;
 }
 
 /* Get current window size, in packets */
@@ -40,8 +43,6 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
 	     send_timestamp, sequence_number );
   }
   
-  window_float = window_float + (1.0/window);
-  
 }
 
 /* An ack was received */
@@ -63,12 +64,21 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
 	     send_timestamp_acked, recv_timestamp_acked );
   }
+  
+  window_float = window_float + (1.0/window);
+  
+  rtt = timestamp_ack_received - send_timestamp_acked;
+  srtt = (alpha*rtt) + ((1-alpha)*srtt);
+  timeout_float = 1.25 * srtt;
+  
 }
 
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 1000; /* timeout of one second */
+	timeout = (int) timeout_float;
+	return timeout;
+  //return 1000; /* timeout of one second */
 }
 
 void Controller::timout_detected(void)
