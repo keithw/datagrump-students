@@ -99,7 +99,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
     fprintf( stderr, "Used capacity estimate: %lu. \n", sequence_number_acked - last_packet_sent_);
   } else {
     /* Black magic heuristic */
-    w_size_ = max(w_size_ + (pow((1/rtt_ratio_),2)-0.5)*(params_.AI / max(w_size_, 1.0)),1.0);
+    w_size_ = max(w_size_ + log(pow((1/(rtt_ratio_/2)),10))*(params_.AI / max(w_size_, 1.0)),1.0);
   }
 
   if ( debug_ ) {
