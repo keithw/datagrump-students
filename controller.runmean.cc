@@ -24,7 +24,7 @@ Controller::Controller( const bool debug )
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
     resolution(200),
-    rtt(80),
+    rtt(60),
     rttsum(400),
     rttn(10),
     ackTracker(0.0),
