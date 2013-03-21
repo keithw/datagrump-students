@@ -145,7 +145,7 @@ int Controller::chompWindow(int cint, double cwindDL) {
   if (cint < 1)
     if ((lastCW == 0) || (ackTracker == 0.0))
       cint = 1;
-
+  if (rho > 0.25) cint += 5;
   // if ((lastCW >= cint) && (lastCW <= lastPB) && (lastCW <= 1.5*(cint)))
   //   cint = lastCW+1;
 
