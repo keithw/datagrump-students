@@ -141,10 +141,14 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
   //double bwest=runmean.size()/resolution;
-  double logbwest = log(runmean.size()+1)*0.8274-1.7633;
-  double bwest=exp(logbwest);//runmean.size()/resolution;
+  double tfbest = 2*sqrt(runmean.size()+3/8)*0.2754-0.16635;
+  double bwest=(tfbest*tfbest/4-3/8);//runmean.size()/resolution;
+  if(bwest>0){
   //if(cwind > runmean.size()/resolution*rtt){
-  cwind= bwest*(rtt+20);
+    cwind= bwest*(rtt+20);
+  }else{
+    cwind=1;
+  }
     /*}else{
     cwind=runmean.size()/resolution*rtt*1.5+1;
     }*/
