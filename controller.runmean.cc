@@ -162,8 +162,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
 	      (int)(recv_timestamp_acked-send_timestamp_acked),
 	      (int)(timestamp_ack_received-recv_timestamp_acked),
 	      bwest,
-	      cwind,
-	      mrtt);
+	      cwind);
   }
   /*if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
