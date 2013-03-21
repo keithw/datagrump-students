@@ -25,8 +25,10 @@ unsigned int Controller::window_size( void )
   //int the_window_size = 15;
 
   if ( debug_ ) {
-    fprintf( stderr, "At time %lu, return window_size = %d.\n",
-	     timestamp(), the_window_size );
+    /*fprintf( stderr, "At time %lu, return window_size = %d.\n",
+	     timestamp(), the_window_size );*/
+	fprintf( stderr, "At time %lu, return window_size = %d.\n",
+	     timestamp(), window );
   }
 
   //return the_window_size;
