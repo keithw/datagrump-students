@@ -10,7 +10,7 @@ namespace {
   const int RTT_THRESHOLD = 80;
   const double WINDOW_SIZE_ADJUSTMENT = 0.1;
 
-  const double RTT_ALPHA = 0.8;
+  const double RTT_ALPHA = 1.0;
 }
 
 using namespace Network;
