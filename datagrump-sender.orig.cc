@@ -43,17 +43,25 @@ int main( int argc, char *argv[] )
     while ( 1 ) {
       /* Ask controller: what is the window size? */
       unsigned int window_size = controller.window_size();
-      unsigned int ns= 0;
+      bool markBeginning= false;
+      unsigned int ns = 0;
       /* fill up window */
+
+      unsigned int nsend = sequence_number - next_ack_expected;
+      if (nsend) markBeginning = true;
+
       while ( sequence_number - next_ack_expected < window_size ) {
         Packet x( destination, sequence_number++ );
         sock.send( x );
         controller.packet_was_sent( x.sequence_number(),
                                     x.send_timestamp() );
-        if ((++ns) > 5) {
-          //window_size = controller.window_size();
-          ns = 0;
+        if ((ns == 0) && markBeginning){
+          //this marks the beginning of a set of consecutive packets. The acks here
+          //are MOST informative!!
+          // end will be
+          controller.markBeginning(x.sequence_number(), x.sequence_number() + nsend - 1);
         }
+      ns ++;
       }
 
       /* Wait for acknowledgement or timeout */

@@ -10,7 +10,7 @@ double cwind;
 std::queue<int>  runmean;
 std::list<int>  stimes;
 std::list<int>  rtimes;
-
+std::list< pair<uint64_t, uint64_t> > burstPackets;
 #define rttest 40.0
 FILE *fsend = stderr;
 FILE *fget = stderr;
@@ -29,7 +29,6 @@ Controller::Controller( const bool debug )
     ackTracker(0.0),
     ackLastDelta(0.0),
     lastAck(0),
-    rho(2.5),
     networkDown(false),
     recovery(0),
     lastPB(0),
@@ -108,7 +107,7 @@ double Controller::estimateParameters() {
   double ackRateEst = cwind/rttest;
   double ackRateObs = (ackTracker > 0.0) ? (1 / ackTracker) : ackRateEst;
   double cwindDL = ackRateObs * rttest;
-  if (ackRateObs > ackRateEst) {
+  if (ackRateObs >= ackRateEst) {
     // if we are getting acks faster => network has recoved and queue is
     // being flushed and we are getting fast responses
     double wt = 0.5;
@@ -241,8 +240,17 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
                                   const uint64_t send_timestamp_acked,
                                   const uint64_t recv_timestamp_acked,
                                   const uint64_t timestamp_ack_received ){
-  if (sequence_number_acked == 0)
-    fprintf(stderr, "acked first packet\n");
+  double rho = 0.25;
+  while (burstPackets.size() > 0) {
+    if (sequence_number_acked <= burstPackets.front().second) break;
+    burstPackets.pop_front();
+  }
+  if (burstPackets.size() > 0) {
+    if (sequence_number_acked == burstPackets.front().first) rho = 0.0;
+    else if ((sequence_number_acked >  burstPackets.front().first) &&
+             (sequence_number_acked <= burstPackets.front().second))
+      rho = 0.9;
+  }
   assert(send_timestamp_acked <= timestamp_ack_received);
   assert(recv_timestamp_acked <= timestamp_ack_received);
 
@@ -259,12 +267,15 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
         ackTracker = (1-rho)*ackTracker + rho*d;
       recovery = 0;
     }
-    ackLastDelta = (recv_timestamp_acked-lastAck);
+    ackLastDelta = (timestamp_ack_received-lastAck);
     ackTracker = (1-rho)*ackTracker + rho*ackLastDelta;
-    lastAck = recv_timestamp_acked;
+    lastAck = timestamp_ack_received;
   }
-  else if(lastAck == recv_timestamp_acked) {//multiple acks at once
+  else if(lastAck == timestamp_ack_received) {//multiple acks at once
     ++recovery;
   }
   networkDown = false;
+}
+void Controller::markBeginning(const uint64_t start_sequence_number, const uint64_t end_sequence_number) {
+  burstPackets.push_back(pair<uint64_t, uint64_t>(start_sequence_number, end_sequence_number))
 }

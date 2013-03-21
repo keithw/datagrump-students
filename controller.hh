@@ -49,7 +49,6 @@ public:
   double ackTracker ;
   double ackLastDelta ;
   uint64_t lastAck ;
-  double rho;
   bool networkDown;
   unsigned int recovery ;
   unsigned int lastPB ;
@@ -73,6 +72,7 @@ public:
                         const uint64_t timestamp_ack_received );
 
   int chompWindow(int cint, double cwindDL);
+  void markBeginning(const uint64_t start_sequence_number, const uint64_t end_sequence_number);
 };
 
 #endif
