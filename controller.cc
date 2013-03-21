@@ -83,5 +83,5 @@ unsigned int Controller::timeout_ms( void )
 
 void Controller::timout_detected(void)
 {
-	window_float = window_float/2;
+	//window_float = window_float/2;
 }
