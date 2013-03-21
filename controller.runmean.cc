@@ -20,7 +20,7 @@ FILE *fget = stderr;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ),
-    cwind(5),
+    cwind(10),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
     resolution(200),
@@ -206,7 +206,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   rtimes.push_front(recv_timestamp_acked);
   runmean.push(send_timestamp_acked);
   //trim queue to only include last (resolution+rtt/2) of packets.
-  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt+20)){
+  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt)){
     fprintf( stderr, "pop %i, timediff %lu \n",
              runmean.front(),timestamp_ack_received-runmean.front());
     runmean.pop();
