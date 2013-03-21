@@ -9,7 +9,7 @@ using namespace Network;
 Controller::Controller( const bool debug )
   : debug_( debug ), window(15), window_float(15), timeout(1000),
   timeout_float(1000), rtt(0), srtt(0), alpha(0.8), dev(0), rttdev(0),
-  beta(0.8);
+  beta(0.8), rtt_rec({0,0,0,0,0}), rsize(sizeof(rtt_rec)/sizeof(float))
 {
 	/*window = 15;
 	window_float = 15;
@@ -80,7 +80,6 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 	     send_timestamp_acked, recv_timestamp_acked );
   }
   
-  window_float = window_float + (1.0/window);
   
   rtt = timestamp_ack_received - send_timestamp_acked;
   
@@ -92,6 +91,23 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   dev = abs(rtt - srtt);
   rttdev = (beta*dev) + ((1-beta)*rttdev);
   timeout_float = srtt + (4*rttdev);
+  
+  float avg = 0;
+  for ( n=0 ; n<rsize ; n++ ){
+  	avg = avg + (rtt_rec[n]/rsize);
+  }
+  
+  if (rtt > avg){
+  	window_float = window_float + (2.0/window);
+  }
+  else{
+  	window_float = window_float - (0.5/window);
+  }
+  
+  for ( n=0 ; n<(rsize-1) ; n++ ){
+  	rtt_rec[n] = rtt_rec[n+1];
+  }
+  rtt_rec[rsize-1] = rtt;
   
 }
 
