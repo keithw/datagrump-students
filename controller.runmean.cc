@@ -157,7 +157,7 @@ int Controller::chompWindow(int cint, double cwindDL) {
   }
 
   // make sure %change in cint isn't too spiky : causes delays
-  if ((lastCW > 0) && (cint > lastCW))
+  if ((lastCW > 0) && (cint > (int)lastCW))
     if ((cint - lastCW)/float(lastCW) > 2) // change by more than 200%
       cint = 2*lastCW; // can't be anything less than 2 since we are dealing with
                        // integers. May give issues with small numbers
