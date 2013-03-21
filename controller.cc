@@ -101,8 +101,8 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   	avg = avg + (rtt_rec[n]/rsize);
   }
   
-  if (rtt > avg){
-  	window_float = window_float + (1.5/window);
+  if (rtt > (0.9*avg)){
+  	window_float = window_float + (2/window);
   }
   else{
   	window_float = window_float - (1.5/window);
