@@ -71,7 +71,7 @@ public:
                         /* when the acknowledged packet was received */
                         const uint64_t timestamp_ack_received );
 
-  int chompWindow(int cint);
+  int chompWindow(int cint, double cwindDL);
 };
 
 #endif
