@@ -18,10 +18,10 @@ private:
   uint64_t rtt;
   uint64_t srtt;
   float alpha;
-  float dev;
-  float rttdev;
+  uint64_t dev;
+  uint64_t rttdev;
   float beta;
-  float rtt_rec [5];
+  uint64_t rtt_rec [5];
   int rsize;
 
 public:
