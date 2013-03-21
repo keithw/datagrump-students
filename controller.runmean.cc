@@ -24,7 +24,7 @@ Controller::Controller( const bool debug )
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
     resolution(200),
-    rtt(60),
+    rtt(80),
     rttsum(400),
     rttn(10),
     ackTracker(0.0),
@@ -82,7 +82,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
                                const uint64_t timestamp_ack_received )
 /* when the ack was received (by sender) */
 {
-  runmean.push(send_timestamp_acked);
+  runmean.push(timestamp_ack_received);
   while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt)){
     fprintf( stderr, "pop %i, timediff %lu \n",
 	     runmean.front(),timestamp_ack_received-runmean.front());
