@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include <map>
+
 /* Flow controller interface */
 
 class Controller
@@ -17,6 +19,9 @@ private:
 
   // The current RTT measurement.
   double my_rtt_estimate_;
+
+  // The outstanding packets.
+  std::map<uint64_t, uint64_t> my_outstanding_packets_;
 
 public:
   /* Public interface for the flow controller */
