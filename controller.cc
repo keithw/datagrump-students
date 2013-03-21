@@ -30,6 +30,7 @@ unsigned int Controller::window_size( void ) {
 	     timestamp(), my_window_size_ );
   }
 
+  // Make sure we sent out at least one packet.
   return std::max(static_cast<int>(my_window_size_), 1);
 }
 
@@ -87,6 +88,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
     my_window_size_ -= std::min(1.0, -difference * 0.02 / my_window_size_);
   }
 
+  // Make sure our window size doesn't drop below 0.
   my_window_size_ = std::max(my_window_size_, 0.0);
 }
 
