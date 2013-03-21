@@ -7,6 +7,8 @@
 using namespace Network;
 double cwind;
 std::queue<int>  runmean;
+std::list<int>  stimes;
+std::list<int>  rtimes;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
@@ -133,13 +135,29 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
                                /* when the acknowledged packet was received */
                                const uint64_t timestamp_ack_received )
 {
+  //push new packet info onto queue
+  stimes.push_front(send_timestamp_acked);
+  rtimes.push_front(recv_timestamp_acked);
   runmean.push(timestamp_ack_received);
+  //trim queue to only include last (resolution+rtt/2) of packets.
   while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt/2)){
     fprintf( stderr, "pop %i, timediff %lu \n",
              runmean.front(),timestamp_ack_received-runmean.front());
     runmean.pop();
+    squeue.pop_back();
+    rqueue.pop_back();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
+  std::list<int>::const_iterator rIt=rqueue.begin();
+  std::list<int>::const_iterator sIt=squeue.begin();
+  int diffsum=0;
+  for(; rIt!=rqueue.end() && sIt != squeue.end(); ++rIt, ++sIt){
+    int rtime=*rIt;
+    int stime=*sIt;
+    diffsum+=rtime-stime;
+  }
+  double mrtt=diffsum/rqueue;
+  fprintf(stderr "rttmean: $i\n",(int)mrtt);
   double bwest=runmean.size()/resolution;
   /*double slope = 0.5414;
   double icept = -1.0402;
@@ -151,9 +169,6 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   }else{
     cwind=1;
   }
-    /*}else{
-    cwind=runmean.size()/resolution*rtt*1.5+1;
-    }*/
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
              timestamp_ack_received, sequence_number_acked );
