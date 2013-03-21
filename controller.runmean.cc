@@ -16,7 +16,7 @@ Controller::Controller( const bool debug )
     cwind(10),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
-    resolution(100),
+    resolution(200),
     rtt(40),
     rttsum(400),
     rttn(10),
@@ -164,16 +164,13 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   double tfbest = 2*sqrt(runmean.size()+3/8)*slope+icept;
   double bwest=(tfbest*tfbest/4-1/8)/20;*/
   // if RTT strongly caps out, drain queue by aiming for < RTT worth of buffer
-  if(mrtt > (rtt/2+10)){
-    cwind= bwest*(rtt-20);
-  }else{
     // RTT indicates non-trucation, aim for steady state of 20ms queue delay
   if(mrtt > (rtt/2+5)){
     cwind= bwest*(rtt+20);
   }else{
     // RTT indicates truncation, aim for 0.75 quantile bw, 20ms delay
     cwind= (bwest+sqrt(bwest*100)*0.598/100+1.11023/100)*(rtt+20)+20;
-  }}
+  }
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
              timestamp_ack_received, sequence_number_acked );
