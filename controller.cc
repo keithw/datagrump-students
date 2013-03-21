@@ -31,7 +31,8 @@ unsigned int Controller::window_size( void )
   }
   //fprintf( stderr, "asdfasfd",);
   if (the_window_size == 0) { the_window_size = 10; }
-  return the_window_size;
+  return 25; // for fixed window size experiment
+  //return the_window_size;
 }
 
 /* A packet was sent */
@@ -80,6 +81,15 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   avg_rtt /= max_samples;
   fprintf(stdout, " new avg: %lu , cwnd: %i \n", avg_rtt, the_window_size);
   
+  /* consider ratio b/t latest diff and average diff to detect substantial drops?
+  if ((diff-1.0)/avg_rtt > 1.5) {
+    the_window_size /=2;
+  }
+  */
+
+  /* somehow detect available capacity and signal flag when below threshold to detect scenarios when the whole network is down.
+   */
+
   // Congestion detection
   if (avg_rtt > 100) { // TODO: MAGIC NUMBER
     if (multi_dec_cooldown == 0) { // multiplicative decrease
