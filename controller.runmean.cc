@@ -79,8 +79,8 @@ unsigned int Controller::window_size( void )
 {
   //estimateParameters();
   /* Default: fixed window size of one outstanding packet */
-  int cint = (int)cwind;
-
+  int cint = (int) cwind;
+  if(cint==0){cint=1;}
   //cint = chompWindow(cint);
 
   if ( debug_ ) {
@@ -142,10 +142,10 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   fprintf(stderr, "size: %i\n",(int)runmean.size());
   //double bwest=runmean.size()/resolution;
   double tfbest = 2*sqrt(runmean.size()+3/8)*0.2754-0.16635;
-  double bwest=(tfbest*tfbest/4-3/8)/20;//runmean.size()/resolution;
+  double bwest=(tfbest*tfbest/4-1/8)/20;//runmean.size()/resolution;
   if(bwest>0){
   //if(cwind > runmean.size()/resolution*rtt){
-    cwind= bwest*(rtt+20);
+    cwind= bwest*(rtt+40);
   }else{
     cwind=1;
   }
