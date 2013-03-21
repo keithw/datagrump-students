@@ -84,7 +84,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   if (avg_rtt > 200) { // TODO: MAGIC NUMBER
     if (multi_dec_cooldown == 0) { // multiplicative decrease
       the_window_size /= 2; // TODO: MAGIC NUMBER FROM TCP
-      multi_dec_cooldown = 5; // enter cooldown period TODO: MAGIC NUMBER
+      multi_dec_cooldown = 2; // enter cooldown period TODO: MAGIC NUMBER
       time_diffs.clear(); // clear timestamp diff duration array to react more quickly after decrease
     } else {// in cooldown period, skip mul. dec. so cwnd doesn't collapse
       multi_dec_cooldown--;
