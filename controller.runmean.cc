@@ -51,8 +51,7 @@ unsigned int Controller::window_size( void )
   double cwindDL = estimateParameters();
   int cint = (int) cwind;
   if(cint==0){cint=1;}
-  cint = chompWindow(cint, cwindDL);
-
+  //cint = chompWindow(cint, cwindDL);
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
              timestamp(), cint );
@@ -85,7 +84,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* when the ack was received (by sender) */
 {
   refineParameters(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
-  refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
+  //refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
              timestamp_ack_received, sequence_number_acked );
@@ -191,9 +190,9 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   //push new packet info onto queue
   stimes.push_front(send_timestamp_acked);
   rtimes.push_front(recv_timestamp_acked);
-  runmean.push(timestamp_ack_received);
+  runmean.push(send_timestamp_acked);
   //trim queue to only include last (resolution+rtt/2) of packets.
-  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution)){
+  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt)){
     fprintf( stderr, "pop %i, timediff %lu \n",
              runmean.front(),timestamp_ack_received-runmean.front());
     runmean.pop();
@@ -218,12 +217,14 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   double bwest=(tfbest*tfbest/4-1/8)/20;*/
   // if RTT strongly caps out, drain queue by aiming for < RTT worth of buffer
     // RTT indicates non-trucation, aim for steady state of 20ms queue delay
+  cwind= bwest*(rtt+20);
+  /*
   if(mrtt > (rtt/2+5)){
     cwind= bwest*(rtt+20);
   }else{
     // RTT indicates truncation, aim for 0.75 quantile bw, 20ms delay
     cwind= (bwest+sqrt(bwest*100)*0.598/100+1.11023/100)*(rtt+20);//+20;
-  }
+    }*/
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
              timestamp_ack_received, sequence_number_acked );
