@@ -11,6 +11,8 @@ private:
   bool debug_; /* Enables debugging output */
   double w_size;
   uint64_t prev_send_time;
+  int countdown;
+  bool fast;
   /* Add member variables here */
 
 public:

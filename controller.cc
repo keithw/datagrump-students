@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <iostream>
+#include <math.h>
 
 #include "controller.hh"
 #include "timestamp.hh"
@@ -6,10 +8,11 @@
 #define max(a,b) a > b ? a : b
 
 using namespace Network;
+const int countdown_max = 4;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), w_size( 1.0 ), prev_send_time( 1 )
+  : debug_( debug ), w_size( 15.0 ), prev_send_time( 1.0 ), countdown( countdown_max ), fast( false )
 {
 }
 
@@ -24,7 +27,7 @@ unsigned int Controller::window_size( void )
 	     timestamp(), w_size );
   }
 
-  return max((unsigned int)(w_size + 0.5) - 2.0, 1) ;
+  return max((unsigned int)(w_size + 0.5), 1) ;
 }
 
 /* A packet was sent */
@@ -52,16 +55,34 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 {
   /* Default: take no action */
 
-  uint64_t send_time = recv_timestamp_acked - send_timestamp_acked;
-  double send_delta = send_time / prev_send_time;
-  prev_send_time = send_time;
+  uint64_t send_time = timestamp_ack_received - send_timestamp_acked;
+  double send_delta = send_time / (double)prev_send_time;
+
   if (send_delta < 1.0) {
-    /* send time decreasing; increase window size */
-    w_size += .5 * send_delta;
+    if (countdown == 0) {
+      countdown = countdown_max;
+      fast = true;
+    }
+    else {
+      countdown--;
+      fast = false;      
+    }
   }
-  else if (send_delta > 1.0) {
-    /* send time increasing; decrease window size */
-    w_size *= (1.0 / send_delta);
+  else {
+    fast = false;
+    countdown = countdown_max;
+    prev_send_time = send_time;
+  }
+
+  if (fast) {
+    if (send_delta == 0)
+      w_size = 15;
+    else
+      w_size = 5.0 / sqrt(send_delta);
+    std::cerr << "fast: " << send_delta << ", w_size = " << w_size << ", send time = " << send_time << std::endl;
+  }
+  else {
+    w_size = 1;
   }
 
   if ( debug_ ) {
