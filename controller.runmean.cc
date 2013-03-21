@@ -10,6 +10,8 @@ std::queue<int>  runmean;
 std::list<int>  stimes;
 std::list<int>  rtimes;
 
+#define rttest 40.0
+
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ),
@@ -35,55 +37,15 @@ Controller::Controller( const bool debug )
 
 
 
-void Controller::estimateParameters() {
-}
 
 
-
-int Controller::chompWindow(int cint) {
-
-  // if we have a zero congestion window, push it out of this regime
-  // if we are just starting up
-  if (cint < 1)
-    if ((lastCW == 0) || (ackTracker == 0.0))
-      cint = 1;
-
-  if ((lastCW >= cint) && (lastCW <= lastPB) && (lastCW <= 1.5*(cint)))
-    cint = lastCW+1;
-
-  // if we haven't seen the last ack in a while, stop sending cause
-  // things are queued up!!
-  // TODO: change 75 to something related to ~ 2*rtt!!. Try 1.5 or something
-  if ((lastAck > 0) && ((tStamp - lastAck) > (1.5*rttest))) {
-    fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
-    cint = 0;
-  }
-  if ((lastAck > 0) && ((tStamp - lastAck) > rttest)) {
-    //fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
-    cint = cint/2;
-  }
-
-  if ( debug_ ) {
-    fprintf( fsend, "@%lu, %d, %.4f, %.4f, %.4f, %u, %.2f, %.1f, %lu\n",
-       (tStamp - start_time), cint, cwindDL, cwind, ackTracker, lastCW, ackLastDelta, rttest, (lastAck > 0) ? (tStamp - lastAck) : 0);
-  }
-  // make sure %change in cint isn't too spiky : causes delays
-  if ((lastCW > 0) && (cint > lastCW))
-    if ((cint - lastCW)/float(lastCW) > 2) // change by more than 200%
-      cint = 2*lastCW; // can't be anything less than 2 since we are dealing with
-                       // integers. May give issues with small numbers
-
-  lastCW = cint;
-  return cint;
-}
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
   //estimateParameters();
-  /* Default: fixed window size of one outstanding packet */
   int cint = (int) cwind;
   if(cint==0){cint=1;}
-  //cint = chompWindow(cint);
+  cint = chompWindow(cint);
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
@@ -125,6 +87,84 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
              send_timestamp_acked, recv_timestamp_acked );
   }
+}
+
+
+
+//////////////////////////////////////////////////
+// adjustments and updates
+//////////////////////////////////////////////////
+
+
+void Controller::estimateParameters() {
+  uint64_t tStamp = timestamp();
+
+  //downlink response rate:
+  double ackRateEst = cwind/rttest;
+  double ackRateObs = (ackTracker > 0.0) ? (1 / ackTracker) : ackRateEst;
+  double cwindDL = ackRateObs * rttest;
+  if (ackRateObs > ackRateEst) {
+    // if we are getting acks faster => network has recoved and queue is
+    // being flushed and we are getting fast responses
+    double wt = 0.5;
+    fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
+    cwind = wt*cwindDL + (1-wt)*cwind;
+  } else {
+    // // if we are getting acks slower => network is putting stuff in a queue somewhere
+    // // This means we need to slow down
+    // if ((lastCW > 1) && (lastCW >= (1.7*cwind))) {
+    //   // we owe a debt we may not be able to pay
+    //   double delta = lastCW - cwind;
+    //   fprintf(fsend, "%lu: overflow by %.2f : %.2f -> ", tStamp,  delta, cwind);
+    //   if (delta < 2*cwind) cwind -= delta/2;
+    //   else cwind /= 2;
+    //   fprintf(stderr, "%.2f \n", cwind);
+    // } else if(lastPB <= lastCW) {
+    //   lastPB = lastCW;
+    //   //cwind += 1;
+    // }
+  }
+
+}
+
+
+
+int Controller::chompWindow(int cint) {
+  uint64_t tStamp = timestamp();
+  // if we have a zero congestion window, push it out of this regime
+  // if we are just starting up
+  if (cint < 1)
+    if ((lastCW == 0) || (ackTracker == 0.0))
+      cint = 1;
+
+  // if ((lastCW >= cint) && (lastCW <= lastPB) && (lastCW <= 1.5*(cint)))
+  //   cint = lastCW+1;
+
+  // if we haven't seen the last ack in a while, stop sending cause
+  // things are queued up!!
+  // TODO: change 75 to something related to ~ 2*rtt!!. Try 1.5 or something
+  if ((lastAck > 0) && ((tStamp - lastAck) > (1.5*rttest))) {
+    fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
+    cint = 0;
+  }
+  if ((lastAck > 0) && ((tStamp - lastAck) > rttest)) {
+    //fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
+    cint = cint/2;
+  }
+
+  // make sure %change in cint isn't too spiky : causes delays
+  if ((lastCW > 0) && (cint > lastCW))
+    if ((cint - lastCW)/float(lastCW) > 2) // change by more than 200%
+      cint = 2*lastCW; // can't be anything less than 2 since we are dealing with
+                       // integers. May give issues with small numbers
+
+  if ( debug_ ) {
+    fprintf( fsend, "@%lu, %d, %.4f, %.4f, %.4f, %u, %.2f, %.1f, %lu\n",
+             (tStamp - start_time), cint, cwindDL, cwind, ackTracker, lastCW, ackLastDelta, rttest, (lastAck > 0) ? (tStamp - lastAck) : 0);
+  }
+
+  lastCW = cint;
+  return cint;
 }
 
 void Controller::refineParameters(const uint64_t sequence_number_acked,
@@ -210,4 +250,5 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
   else if(lastAck == recv_timestamp_acked) {//multiple acks at once
     ++recovery;
   }
+
 }

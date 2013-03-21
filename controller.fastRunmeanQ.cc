@@ -29,9 +29,11 @@ Controller::Controller( const bool debug )
     recovery(0),
     lastPB(0),
     lastCW(0),
-    start_time(timestamp())
+    start_time(timestamp()),
+    rttest(0.0)
  {
   start_time = timestamp();
+  rttest = rttsum/rttn;
   fprintf( stderr, "startTime %lu\n", start_time);
  }
 
@@ -44,7 +46,7 @@ unsigned int Controller::window_size( void )
 {
   uint64_t tStamp = timestamp();
   int rmsize = trimRunmean(tStamp);
-  double rttest=rttsum/rttn;
+  rttest=rttsum/rttn;
   if(rmsize/resolution*rttest<cwind){
     cwind=rmsize/resolution*rttest;
   }
@@ -173,7 +175,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   runmean.push(timestamp_ack_received);
 
   int rmsize = trimRunmean(timestamp_ack_received);
-  double rttest=rttsum/rttn;
+  rttest=rttsum/rttn;
   if(rmsize/resolution*rttest<cwind){
     cwind=rmsize/resolution*rttest;
   }else{
