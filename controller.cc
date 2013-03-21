@@ -10,6 +10,9 @@ Controller::Controller( const bool debug )
   : debug_( debug )
 {
 	window = 15;
+	window_float = 15;
+	timeout = 1000;
+	timeout_float = 1000;
 	rtt = 1000;
 	srtt = 1000;
 	alpha = 0.5;
