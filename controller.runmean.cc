@@ -13,7 +13,7 @@ std::list<int>  rtimes;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ),
-    cwind(5),
+    cwind(10),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
     resolution(100),
@@ -140,7 +140,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   rtimes.push_front(recv_timestamp_acked);
   runmean.push(timestamp_ack_received);
   //trim queue to only include last (resolution+rtt/2) of packets.
-  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt/2)){
+  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution)){
     fprintf( stderr, "pop %i, timediff %lu \n",
              runmean.front(),timestamp_ack_received-runmean.front());
     runmean.pop();
@@ -163,11 +163,11 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   double icept = -1.0402;
   double tfbest = 2*sqrt(runmean.size()+3/8)*slope+icept;
   double bwest=(tfbest*tfbest/4-1/8)/20;*/
-  if(bwest>0){
+  if(mrtt < (rtt/2+5)){
   //if(cwind > runmean.size()/resolution*rtt){
     cwind= bwest*(rtt+20);
   }else{
-    cwind=1;
+    cwind= (bwest+sqrt(bwest)*0.598+1.11023)*(rtt+20);
   }
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
