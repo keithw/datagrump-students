@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <queue>
+#include <cassert>
 #include "controller.hh"
 #include "timestamp.hh"
 
