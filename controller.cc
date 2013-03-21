@@ -141,3 +141,4 @@ send_timestamp_acked, recv_timestamp_acked );
 unsigned int Controller::timeout_ms( void )
 {
   return 70; /* timeout of one second */
+}
