@@ -7,14 +7,16 @@
 using namespace Network;
 double cwind;
 std::queue<int>  runmean;
+std::list<int>  stimes;
+std::list<int>  rtimes;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ),
-    cwind(5),
+    cwind(10),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
-    resolution(100),
+    resolution(200),
     rtt(40),
     rttsum(400),
     rttn(10),
@@ -37,7 +39,7 @@ void Controller::estimateParameters() {
 }
 
 
-
+/*
 int Controller::chompWindow(int cint) {
 
   // if we have a zero congestion window, push it out of this regime
@@ -74,15 +76,15 @@ int Controller::chompWindow(int cint) {
   lastCW = cint;
   return cint;
 }
-
+*/
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
-  estimateParameters();
+  //estimateParameters();
   /* Default: fixed window size of one outstanding packet */
-  int cint = (int)cwind;
-
-  cint = chompWindow(cint);
+  int cint = (int) cwind;
+  if(cint==0){cint=1;}
+  //cint = chompWindow(cint);
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
@@ -116,7 +118,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* when the ack was received (by sender) */
 {
   refineParameters(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
-  refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
+  //refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
              timestamp_ack_received, sequence_number_acked );
@@ -134,17 +136,41 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
                                /* when the acknowledged packet was received */
                                const uint64_t timestamp_ack_received )
 {
+  //push new packet info onto queue
+  stimes.push_front(send_timestamp_acked);
+  rtimes.push_front(recv_timestamp_acked);
   runmean.push(timestamp_ack_received);
-  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution+rtt/2)){
+  //trim queue to only include last (resolution+rtt/2) of packets.
+  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution)){
     fprintf( stderr, "pop %i, timediff %lu \n",
              runmean.front(),timestamp_ack_received-runmean.front());
     runmean.pop();
+    stimes.pop_back();
+    rtimes.pop_back();
   }
   fprintf(stderr, "size: %i\n",(int)runmean.size());
-  if(cwind > runmean.size()/resolution*rtt){
-    cwind= runmean.size()/resolution*rtt;
+  std::list<int>::const_iterator rIt=rtimes.begin();
+  std::list<int>::const_iterator sIt=stimes.begin();
+  int diffsum=0;
+  for(; rIt!=rtimes.end() && sIt != stimes.end(); ++rIt, ++sIt){
+    int rtime=*rIt;
+    int stime=*sIt;
+    diffsum+=rtime-stime;
+  }
+  double mrtt=diffsum/((int)rtimes.size());
+  fprintf(stderr,"rttmean: %i\n",(int)mrtt);
+  double bwest=runmean.size()/resolution;
+  /*double slope = 0.5414;
+  double icept = -1.0402;
+  double tfbest = 2*sqrt(runmean.size()+3/8)*slope+icept;
+  double bwest=(tfbest*tfbest/4-1/8)/20;*/
+  // if RTT strongly caps out, drain queue by aiming for < RTT worth of buffer
+    // RTT indicates non-trucation, aim for steady state of 20ms queue delay
+  if(mrtt > (rtt/2+5)){
+    cwind= bwest*(rtt+20);
   }else{
-    cwind=runmean.size()/resolution*rtt*1.5+0.65;
+    // RTT indicates truncation, aim for 0.75 quantile bw, 20ms delay
+    cwind= (bwest+sqrt(bwest*100)*0.598/100+1.11023/100)*(rtt+20);//+20;
   }
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
@@ -161,13 +187,10 @@ unsigned int Controller::timeout_ms( void )
   return 10000; /* timeout of one second */
 }
 
-
+/*
 void Controller::refineModulation(const uint64_t sequence_number_acked,
-                                  /* what sequence number was acknowledged */
                                   const uint64_t send_timestamp_acked,
-                                  /* when the acknowledged packet was sent */
                                   const uint64_t recv_timestamp_acked,
-                                  /* when the acknowledged packet was received */
                                   const uint64_t timestamp_ack_received ){
   if (lastAck == 0) {
     lastAck = recv_timestamp_acked;
@@ -189,3 +212,4 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
     ++recovery;
   }
 }
+*/
