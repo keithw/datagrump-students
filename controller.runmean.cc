@@ -41,6 +41,38 @@ void Controller::estimateParameters() {
 
 
 int Controller::chompWindow(int cint) {
+
+  // if we have a zero congestion window, push it out of this regime
+  // if we are just starting up
+  if (cint < 1)
+    if ((lastCW == 0) || (ackTracker == 0.0))
+      cint = 1;
+
+  if ((lastCW >= cint) && (lastCW <= lastPB) && (lastCW <= 1.5*(cint)))
+    cint = lastCW+1;
+
+  // if we haven't seen the last ack in a while, stop sending cause
+  // things are queued up!!
+  // TODO: change 75 to something related to ~ 2*rtt!!. Try 1.5 or something
+  if ((lastAck > 0) && ((tStamp - lastAck) > (1.5*rttest))) {
+    fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
+    cint = 0;
+  }
+  if ((lastAck > 0) && ((tStamp - lastAck) > rttest)) {
+    //fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
+    cint = cint/2;
+  }
+
+  if ( debug_ ) {
+    fprintf( fsend, "@%lu, %d, %.4f, %.4f, %.4f, %u, %.2f, %.1f, %lu\n",
+       (tStamp - start_time), cint, cwindDL, cwind, ackTracker, lastCW, ackLastDelta, rttest, (lastAck > 0) ? (tStamp - lastAck) : 0);
+  }
+  // make sure %change in cint isn't too spiky : causes delays
+  if ((lastCW > 0) && (cint > lastCW))
+    if ((cint - lastCW)/float(lastCW) > 2)
+      cint = 1.25*lastCW;
+
+  lastCW = cint;
   return cint;
 }
 
@@ -117,4 +149,34 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
 unsigned int Controller::timeout_ms( void )
 {
   return 1000; /* timeout of one second */
+}
+
+
+void Controller::refineModulation(const uint64_t sequence_number_acked,
+                                  /* what sequence number was acknowledged */
+                                  const uint64_t send_timestamp_acked,
+                                  /* when the acknowledged packet was sent */
+                                  const uint64_t recv_timestamp_acked,
+                                  /* when the acknowledged packet was received */
+                                  const uint64_t timestamp_ack_received ) {
+  if (lastAck == 0) {
+    lastAck = recv_timestamp_acked;
+  }
+  else if(lastAck < recv_timestamp_acked){ //if this is not true, something funny is going on
+    if (recovery > 0)  {
+      // need to adjust for overlapping acks
+      double d = ackLastDelta / (double)recovery;
+      ackTracker -= rho * (ackLastDelta - d);
+      for (unsigned int i=1; i< recovery; i++)
+        ackTracker = (1-rho)*ackTracker + rho*d;
+      recovery = 0;
+    }
+    ackLastDelta = (recv_timestamp_acked-lastAck);
+    ackTracker = (1-rho)*ackTracker + rho*ackLastDelta;
+    lastAck = recv_timestamp_acked;
+  }
+  else if(lastAck == recv_timestamp_acked) {//multiple acks at once
+    ++recovery;
+  }
+
 }
