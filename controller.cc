@@ -83,9 +83,9 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 
   double difference = RTT_THRESHOLD - my_rtt_estimate_;
   if (difference >= 0) {
-    my_window_size_ += std::min(1.0, difference * 0.01 / my_window_size_);
+    my_window_size_ += std::min(1.0, difference * 0.02 / my_window_size_);
   } else {
-    my_window_size_ -= std::min(1.0, -difference * 0.10 / my_window_size_);
+    my_window_size_ -= std::min(1.0, -difference * 0.1 / my_window_size_);
   }
 
   // Make sure our window size doesn't drop below 0.
