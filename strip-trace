@@ -1,11 +1,13 @@
 #!/bin/bash
 
-# run as ./strip-trace 0 100
+# run as ./strip-trace 0 100 downlink_prefix uplink_prefix
 # not sure if works if the first number is not 0 :)
 # I don't understand how these timestamp work
 
 tstart=$1
 tend=$2
+uplink=$3
+downlink=$4
 first=-1
 
 echo "from $tstart to $tend"
@@ -22,7 +24,7 @@ do
       break
     fi
   fi
-done < ../att_downlink.ms > ../att_downlink-$tstart-$tend.ms
+done < $downlink.ms > $downlink-$tstart-$tend.ms
 
 first=-1
 while read number
@@ -37,5 +39,5 @@ do
       break
     fi
   fi
-done < ../att_uplink.ms > ../att_uplink-$tstart-$tend.ms
+done < $uplink.ms > $uplink-$tstart-$tend.ms
 

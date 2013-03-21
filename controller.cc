@@ -12,7 +12,7 @@ using namespace std;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ), 
-    w_size_(40), 
+    w_size_(50), 
     rtt_last_(0),
     rtt_min_(-1),
     rtt_max_(0),
@@ -20,7 +20,8 @@ Controller::Controller( const bool debug )
     rtt_ratio_(1.0),
     initial_timestamp_(0),
     last_packet_sent_(0),
-    capacity_estimate_(0.0),
+    capacity_estimate_(0),
+    capacity_avg_(0), // TODO: set this to non-zero
     queue_estimate_(0.0),
     acks_(),
     params_()
@@ -28,8 +29,8 @@ Controller::Controller( const bool debug )
   /* Default parameters */
   params_.AI = 1.0;
   params_.MD = 0.5;
-  params_.AVG = 0.5;
-  params_.ack_interval_size = 200; // ms
+  params_.AVG = 0.2;
+  params_.ack_interval_size = 40; // ms
 
   LoadParams("controller_config.txt");
 }
@@ -41,9 +42,10 @@ void Controller::LoadParams(const char* filename) {
     param_file >> params_.AI;
     param_file >> params_.MD;
   } catch (...) {
-    fprintf(stderr, "There's something wrong with the file. Some params will have default values.\n");
+    fprintf( stderr, "Read error, params will have default values.\n");
   }
-  fprintf(stderr, "Read params AI:%.1f, MD:%.1f\n", params_.AI, params_.MD);
+  fprintf( stderr, "Read params AI:%.1f, MD:%.1f\n",
+      params_.AI, params_.MD);
 }
 
 /* Get current window size, in packets */
@@ -94,9 +96,14 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
         timestamp_ack_received));
   update_capacity_stats(timestamp_ack_received, sequence_number_acked);
  
-  if (capacity_estimate_ > 0.5) {
-    w_size_ = (capacity_estimate_ - queue_estimate_ / 100) * rtt_min_;
-    fprintf( stderr, "Used capacity estimate: %lu. \n", sequence_number_acked - last_packet_sent_);
+  /* This gives a 0.01 improvement, but it's more hacky: */
+  // if (capacity_avg_ > 0 && timestamp_ack_received - initial_timestamp_ > 1300) {
+  // ...
+  
+  if (capacity_avg_ > 0) {
+    /* We use twice the capacity average (2 * bddelay) to ensure a high throughput and
+     * substract the capacity reserved for draining the queue in time drain_time_ = 100ms */
+    w_size_ = max(1.0, (2 * capacity_avg_ - queue_estimate_ / 100) * rtt_min_);
   } else {
     /* Black magic heuristic */
     w_size_ = max(w_size_ + log(pow((1/(rtt_ratio_/2)),10))*(params_.AI / max(w_size_, 1.0)),1.0);
@@ -114,12 +121,15 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 1000; /* timeout in ms */
+  /* If the min_rtt should be around 40ms, and we are not dropping the w_size
+   * we shouldn't wait more than 60ms. */
+  return 60;
 }
 
 void Controller::packet_timed_out(void)
 {
-  w_size_ = w_size_ - params_.MD * w_size_;
+  /* Let's let only the estimated_capacity decrease the window */
+  // w_size_ = w_size_ - params_.MD * w_size_;
 }
 
 void Controller::update_rtt_stats(const double rtt)
@@ -152,9 +162,20 @@ void Controller::update_capacity_stats(
 
   /* Capacity estimate heuristic */
   capacity_estimate_ = ((double) acks_.size()) / params_.ack_interval_size;
+  
+  // TODO: it might be worth trying the capacity_avg here, although we are
+  // estimating the queue at the current ack
   queue_estimate_ = (rtt_last_ - rtt_min_) * capacity_estimate_;
 
-  fprintf( stderr, "At time %lu, acks %lu, capacity_ %.2f, queue %.2f, outstanding %lu \n",
-	   timestamp - initial_timestamp_, acks_.size(),
-     capacity_estimate_, queue_estimate_, current_ack - last_packet_sent_);
+  /* Weighted average */
+  if (capacity_avg_ == 0) {
+    capacity_avg_ = capacity_estimate_;
+  } else {
+    // TODO: find the best params_.AVG
+    capacity_avg_ = params_.AVG * capacity_estimate_ + (1 - params_.AVG) * capacity_avg_;
+  }
+
+  fprintf( stderr, "At time %lu, capacity %.2f capacity_avg %.2f, queue %.2f, outstanding %lu \n",
+	   timestamp - initial_timestamp_, capacity_estimate_, capacity_avg_,
+     queue_estimate_, current_ack - last_packet_sent_);
 }
