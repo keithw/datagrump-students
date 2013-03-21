@@ -115,6 +115,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* when the ack was received (by sender) */
 {
   refineParameters(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
+  refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
              timestamp_ack_received, sequence_number_acked );
@@ -163,7 +164,7 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
                                   /* when the acknowledged packet was sent */
                                   const uint64_t recv_timestamp_acked,
                                   /* when the acknowledged packet was received */
-                                  const uint64_t timestamp_ack_received ) {
+                                  const uint64_t timestamp_ack_received ){
   if (lastAck == 0) {
     lastAck = recv_timestamp_acked;
   }
@@ -183,5 +184,4 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
   else if(lastAck == recv_timestamp_acked) {//multiple acks at once
     ++recovery;
   }
-
 }
