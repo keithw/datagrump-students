@@ -100,10 +100,14 @@ void Controller::ack_received(const uint64_t sequence_number_acked,
 {
   if (debug_) {
     fprintf(stderr, "At time %lu, received ACK for packet %lu",
-	     timestamp_ack_received, sequence_number_acked);
+	    timestamp_ack_received, sequence_number_acked);
 
     fprintf(stderr, " (sent %lu, received %lu by receiver's clock).\n",
-	     send_timestamp_acked, recv_timestamp_acked);
+	    send_timestamp_acked, recv_timestamp_acked);
+
+    fprintf(stderr, "  delay=%lu, rtt=%lu\n",
+      recv_timestamp_acked - send_timestamp_acked,
+      timestamp_ack_received - send_timestamp_acked);
   }
 
   if (first_recv_time == 0) {
