@@ -11,6 +11,13 @@ private:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
+  unsigned int window;
+  unsigned int timeout;
+  float window_float;
+  float timeout_float;
+  uint64_t srtt;
+  uint64_t rtt;
+  float alpha;
 
 public:
   /* Public interface for the flow controller */
@@ -22,14 +29,6 @@ public:
 
   /* Get current window size, in packets */
   unsigned int window_size( void );
-  
-  /*unsigned int window;
-  unsigned int timeout;
-  float window_float;
-  float timeout_float;
-  uint64_t srtt;
-  uint64_t rtt;
-  float alpha;*/
 
   /* A packet was sent */
   void packet_was_sent( const uint64_t sequence_number,
