@@ -64,7 +64,7 @@ int main( int argc, char *argv[] )
           // end will be
           controller.markBeginning(x.sequence_number(), x.sequence_number() + nsend - 1);
         }
-	ns ++;
+        ns ++;
       }
       struct pollfd fd = { sock.fd(), POLLIN, 0 };
       int ptest = poll( &fd, 1, 0 );
