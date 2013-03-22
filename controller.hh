@@ -15,6 +15,7 @@ public:
     double AVG;
     double derivAVG;
     double ack_interval_size;
+    double expected_rtt_min;
   };
 
   class Ack {
@@ -22,15 +23,15 @@ public:
       uint64_t send_;
       uint64_t recv_;
       uint64_t acked_;
-    
-      Ack(const uint64_t send, const uint64_t recv, const uint64_t acked) 
+
+      Ack(const uint64_t send, const uint64_t recv, const uint64_t acked)
         : send_(send), recv_(recv), acked_(acked) {}
   };
 
 private:
   bool debug_; /* Enables debugging output */
-  
-  /* Add member variables here */ 
+
+  /* Add member variables here */
   double w_size_;
   double rtt_last_;
   double rtt_min_;
@@ -42,7 +43,10 @@ private:
   double rtt_ratio_;
 
   uint64_t initial_timestamp_;
+  uint64_t processed_timestamp_;
   uint64_t last_packet_sent_;
+  uint64_t last_ack_received_;
+
   double capacity_estimate_; /* recent_acks / time_frame */
   double capacity_avg_;
   double capacity_derivative_;
@@ -52,7 +56,7 @@ private:
 
   std::deque<Ack> acks_; /* Keeps record of all the acks received recently */
   ConfigParams params_; /* Params for AIMD and beyond. */
-  
+
 public:
   /* Public interface for the flow controller */
   /* You can change these if you prefer, but will need to change
@@ -82,15 +86,16 @@ public:
 
   /* Packet timed out */
   void packet_timed_out(void);
-  
+
   /* Update RTT statistics after ack received */
   void update_rtt_stats(double rtt);
 
   /* Update capacity estimates after ack received */
-  void update_capacity_stats(
-      const uint64_t timestamp, const uint64_t current_ack);
- 
+  void update_capacity_stats(const uint64_t timestamp);
+
+  /* Update window size after an ACK or a timeout (tick) */
+  void update_window_size(const uint64_t timestamp);
 };
-  
-  
+
+
 #endif
