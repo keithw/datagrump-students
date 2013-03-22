@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include "timestamp.hh"
 #include "socket.hh"
 
 using namespace Network;
@@ -22,11 +22,13 @@ int main( int argc, char *argv[] )
 			argv[ 1 ] /* port */ ) );
 
     fprintf( stderr, "Listening on port %s...\n", argv[ 1 ] );
+    fprintf( stderr, "Start On %d \n",timestamp());
 
     /* Loop */
     uint64_t sequence_number = 0;
     while ( 1 ) {
       Packet received_packet = sock.recv();
+      fprintf( stderr, "Recv on %d\n",timestamp());
 
       /* Send back acknowledgment */
       Packet ack( received_packet.addr(), sequence_number++, received_packet );
