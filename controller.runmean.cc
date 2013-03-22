@@ -255,14 +255,11 @@ int Controller::chompWindow(unsigned int cint, double cwindDL) {
   if ((lastAck > 0) && (cint > 0)) {
     if ((lastAck > 0) && (cint > 0) && ((tStamp - lastAck) > (1.5*RTT))) {
       fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
-      if (sendTimestamp.size() > 10) cint = 0;
-      else {
-        // desired queue buildup should be bw * rtt? Space this out
-        // make sure we sent two back to back packets for good estimates
-        int u = (2*(int)((tStamp - lastAck)/((double)RTT) - sendTimestamp.size()))/2;
-        if (u >= 0) cint = u;
-        else cint = 0;
-      }
+      // desired queue buildup should be bw * rtt? Space this out
+      // make sure we sent two back to back packets for good estimates
+      int u = (2*(int)((tStamp - lastAck)/((double)RTT) - sendTimestamp.size()))/2;
+      if (u >= 0) cint = u;
+      else cint = 0;
       //cint = 0;
       networkDown = true;
     }
