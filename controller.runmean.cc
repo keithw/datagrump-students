@@ -25,7 +25,7 @@ Controller::Controller( const bool debug )
     cwind(10),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
-    resolution(50),
+    resolution(100),
     resolutionLR(200),
     rtt(40),
     rttsum(400),
@@ -207,8 +207,8 @@ double Controller::estimateParameters() {
     if (cwind > lastcwind)
       cwind += (cwind - lastcwind)*2;
   } else {
-      if (rho < 0.5) cwind += (cwind - lastcwind)*2;
-      else cwind -= 1;
+    if (rho < 0.5) cwind += 1; // (cwind - lastcwind)*2;
+    else cwind -= 1;
     // // if we are getting acks slower => network is putting stuff in a queue somewhere
     // // This means we need to slow down.
 
