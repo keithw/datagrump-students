@@ -204,8 +204,8 @@ double Controller::estimateParameters() {
       fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
       wt = 0.0;//9;
       cwind =  (wt*cwindDL + (1-wt)*cwind);
-      // if (cwind > lastcwind)
-      //   cwind += 1; // (cwind - lastcwind)*2;
+      if (cwind > lastcwind)
+        cwind += 1; // (cwind - lastcwind)*2;
     }
     // else if ((delayTracker > (1.5*RTT)) && (delayTracker < (2*RTT)) && (cwind > 1))
     //   cwind -= 1;
