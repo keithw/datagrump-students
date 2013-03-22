@@ -35,6 +35,8 @@ unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
   //int the_window_size = 15;
+  
+  window = (unsigned int) window_float;
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size_float = %f.\n",
@@ -44,7 +46,8 @@ unsigned int Controller::window_size( void )
   }
 
   //return the_window_size;
-  window = (unsigned int) window_float;
+  
+  if (window==0){window = 1;}
   return window;
 }
 
@@ -106,7 +109,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   	window_float = window_float + (2.0/window);
   }
   else{
-  	window_float = window_float - (1.0/window);
+  	window_float = window_float - (0.5/window);
   }
   
   for (int n=0 ; n<(rsize-1) ; n++ ){
