@@ -64,6 +64,7 @@ public:
                         const uint64_t recv_timestamp_acked,
                         /* when the acknowledged packet was received */
                         const uint64_t timestamp_ack_received );
+  void refineParametersWhenSend(const uint64_t timestamp_ack_received );
   void refineModulation(const uint64_t sequence_number_acked,
                         /* what sequence number was acknowledged */
                         const uint64_t send_timestamp_acked,
