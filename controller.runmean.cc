@@ -25,7 +25,7 @@ Controller::Controller( const bool debug )
     cwind(20),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
-    resolution(80),
+    resolution(100),
     resolutionLR(200),
     rtt(40),
     rttsum(400),
@@ -136,7 +136,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   int truncresLR = resolutionLR;
   double bwestSR=((double)runmean.size())/truncres;
   double bwestLR=((double)runmeanLR.size())/truncresLR;
-  double bwest=(bwestSR+bwestLR*4)/(1+4);
+  double bwest=(bwestSR+bwestLR)/(1+1);
   if(rtimes.size()>0){
     std::list<int>::const_iterator rIt=rtimes.begin();
     std::list<int>::const_iterator sIt=stimes.begin();

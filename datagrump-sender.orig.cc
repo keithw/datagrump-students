@@ -65,6 +65,7 @@ int main( int argc, char *argv[] )
           controller.markBeginning(x.sequence_number(), x.sequence_number() + nsend - 1);
         }
 	ns ++;
+	
       }
 
       /* Wait for acknowledgement or timeout */
