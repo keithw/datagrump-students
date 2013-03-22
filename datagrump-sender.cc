@@ -17,9 +17,9 @@ int main( int argc, char *argv[] )
 {
   /* check arguments */
   bool debug = false;
-	unsigned int init_cwnd = 10;
+	unsigned int init_cwnd = 35;
 	double ai_coeff = 1, md_coeff = 3;
-  uint64_t delay_threshold = 35;
+  uint64_t delay_threshold = 10;
 	ControllerType controllerType = ADAPTIVEDELAY;
  
   if ( argc == 4 && string( argv[ 3 ] ) == "debug" ) {

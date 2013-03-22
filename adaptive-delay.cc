@@ -82,21 +82,23 @@ void AdaptDelayController::ack_received( const uint64_t sequence_number_acked,
   sim_queue.pop_front();
 
   /* Propogate tx_delay informtaion through the sim_queue */
-  std::deque<PacketData>::iterator currPacketP = sim_queue.begin();
   double last_recv_timestamp = recv_timestamp_acked;
-  while(currPacketP != sim_queue.end()){
-    if((last_recv_timestamp + tx_delay) > (currPacketP->send_timestamp + PROPDELAY)){
-      currPacketP->recv_timestamp = last_recv_timestamp + tx_delay;
-      currPacketP->was_queued = true;
-    } else {
-      currPacketP->recv_timestamp = currPacketP->send_timestamp + PROPDELAY;
-      currPacketP->was_queued = false;
-    }
+  if(!sim_queue.empty()){
+    std::deque<PacketData>::iterator currPacketP = sim_queue.begin();
+    while(currPacketP != sim_queue.end()){
+      if((last_recv_timestamp + tx_delay) > (currPacketP->send_timestamp + PROPDELAY)){
+        currPacketP->recv_timestamp = last_recv_timestamp + tx_delay;
+        currPacketP->was_queued = true;
+      } else {
+        currPacketP->recv_timestamp = currPacketP->send_timestamp + PROPDELAY;
+        currPacketP->was_queued = false;
+      }
 
-    double packet_delay = currPacketP->recv_timestamp-currPacketP->send_timestamp;
-    fprintf( stderr, "Propagation %lu - delay: %g, l_r_ts:%g, r_ts: %g, queued: %c\n", currPacketP->sequence_number, packet_delay, (last_recv_timestamp-recv_timestamp_acked), (currPacketP->recv_timestamp-recv_timestamp_acked), (currPacketP->was_queued)?'Y':'N' );
-    last_recv_timestamp = currPacketP->recv_timestamp;
-    ++currPacketP;
+      double packet_delay = currPacketP->recv_timestamp-currPacketP->send_timestamp;
+      fprintf( stderr, "Propagation %lu - delay: %g, l_r_ts:%g, r_ts: %g, queued: %c\n", currPacketP->sequence_number, packet_delay, (last_recv_timestamp-recv_timestamp_acked), (currPacketP->recv_timestamp-recv_timestamp_acked), (currPacketP->was_queued)?'Y':'N' );
+      last_recv_timestamp = currPacketP->recv_timestamp;
+      ++currPacketP;
+    }
   }
 
   /* Now calculate how much delay will the newest packet in the queue see */
@@ -107,7 +109,7 @@ void AdaptDelayController::ack_received( const uint64_t sequence_number_acked,
     delay_estimate = tx_delay + PROPDELAY;
   }
   
-  double delay_slack = delay_threshold - delay_estimate;
+  double delay_slack = PROPDELAY + tx_delay + delay_threshold - delay_estimate;
   double delay_next_recvd = 0;
   if(cwnd > 1){
     delay_next_recvd = sim_queue.front().recv_timestamp - recv_timestamp_acked;
