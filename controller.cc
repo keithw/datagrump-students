@@ -104,11 +104,11 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }
   avg = avg/rsize;
   
-  if (rtt > (avg)){
-  	window_float = 1.2*window_float;// + (1.0/window);
+  if (rtt < (avg)){
+  	window_float = (1.0+(1.0*(avg-rtt)/avg))*window_float;// + (1.0/window);
   }
   else{
-  	window_float = 0.9*window_float;// - (1.5/window);
+  	window_float = (1.0*(rtt-avg)/avg)*window_float;// - (1.5/window);
   }
   
   for (int n=0 ; n<(rsize-1) ; n++ ){
