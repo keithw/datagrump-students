@@ -119,7 +119,7 @@ unsigned int Controller::timeout_ms( void )
 	fprintf( stderr, "dev = %u.\n", dev );
 	fprintf( stderr, "rttdev = %u.\n", rttdev );
 	fprintf( stderr, "avg = %u.\n", avg );
-	fprintf( stderr, "ratio = %u.\n", ratio );
+	fprintf( stderr, "ratio = %f.\n", ratio );
 	fprintf( stderr, "timeout = %u.\n", timeout );
 	return timeout;
   //return 1000; /* timeout of one second */
