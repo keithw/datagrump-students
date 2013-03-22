@@ -90,8 +90,11 @@ void Controller::ack_received(const uint64_t sequence_number_acked,
       timestamp_ack_received - send_timestamp_acked);
   }
 
-  update_estimate(timestamp_ack_received,
-                  (timestamp_ack_received - send_timestamp_acked) / 2);
+  uint64_t rtt = timestamp_ack_received - send_timestamp_acked;
+  uint64_t inaccurate_delay = recv_timestamp_acked > send_timestamp_acked ?
+    std::min(recv_timestamp_acked - send_timestamp_acked, rtt) : rtt;
+
+  update_estimate(timestamp_ack_received, inaccurate_delay);
 
   // It's important that we do this after update_estimate!
   cur_pkt_count++;
