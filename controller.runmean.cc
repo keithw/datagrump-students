@@ -187,13 +187,16 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
 
 
 double Controller::estimateParameters() {
-  if (rho < 0.5) return cwind;
   uint64_t tStamp = timestamp();
   //downlink response rate:
   double ackRateEst = cwind/rttest;
   double ackRateObs = (ackTracker > 0.0) ? (1 / ackTracker) : ackRateEst;
   double cwindDL = ackRateObs * rttest;
   if (ackRateObs >= ackRateEst) {
+    if (rho < 0.5) { // some queue?
+      return cwind-1;
+    }
+
     // if we are getting acks faster => network has recoved and queue is
     // being flushed and we are getting fast responses
     double wt = 0.5;
@@ -204,6 +207,7 @@ double Controller::estimateParameters() {
     if (cwind > lastcwind)
       cwind += (cwind - lastcwind)*2;
   } else {
+
     // // if we are getting acks slower => network is putting stuff in a queue somewhere
     // // This means we need to slow down.
 
