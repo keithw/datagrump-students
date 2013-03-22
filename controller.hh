@@ -14,14 +14,13 @@ private:
   unsigned int window;
   float window_float;
   unsigned int timeout;
-  float timeout_float;
-  uint64_t rtt;
-  uint64_t srtt;
+  unsigned int rtt;
+  unsigned int srtt;
   float alpha;
-  uint64_t dev;
-  uint64_t rttdev;
+  int dev;
+  int rttdev;
   float beta;
-  uint64_t rtt_rec [5];
+  unsigned int rtt_rec [5];
   int rsize;
 
 public:

@@ -9,7 +9,7 @@ using namespace Network;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ), window(30), window_float(30.0), timeout(1500),
-  timeout_float(1500.0), rtt(0), srtt(0), alpha(0.8), dev(0), rttdev(0),
+  rtt(0), srtt(0), alpha(0.8), dev(0), rttdev(0),
   beta(0.8), rtt_rec{0,0,0,0,0}, rsize(sizeof(rtt_rec)/sizeof(float))
 {
 	/*window = 15;
@@ -94,7 +94,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   dev = rtt - srtt;
   dev = dev>0?dev:0-dev;
   rttdev = (beta*dev) + ((1-beta)*rttdev);
-  timeout_float = srtt + (4*rttdev);
+  timeout = srtt + (4*rttdev);
   
   // uint64_t avg = 0;
 //   for (int n=0 ; n<rsize ; n++ ){
@@ -121,8 +121,6 @@ unsigned int Controller::timeout_ms( void )
 {
 	fprintf( stderr, "rtt = %lu.\n", rtt );
 	fprintf( stderr, "srtt = %lu.\n", srtt );
-	fprintf( stderr, "timeout_float = %f.\n", timeout_float );
-	timeout = (unsigned int) timeout_float;
 	fprintf( stderr, "timeout = %d.\n", timeout );
 	return timeout;
   //return 1000; /* timeout of one second */
