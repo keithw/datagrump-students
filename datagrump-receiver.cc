@@ -35,10 +35,12 @@ int main( int argc, char *argv[] )
     while ( 1 ) {
       Packet received_packet = sock.recv();
       fprintf( stderr, "Recv on %d\n",(int)timestamp());
-
-      /* Send back acknowledgment */
-      Packet ack( received_packet.addr(), sequence_number++, received_packet );
-      sock.send( ack );
+      if (sequence_number % 4 < 2) {
+        /* Send back acknowledgment */
+        Packet ack( received_packet.addr(), sequence_number, received_packet );
+        sock.send( ack );
+      }
+      sequence_number++;
     }
   } catch ( const string & exception ) {
     /* We got an exception, so quit. */
