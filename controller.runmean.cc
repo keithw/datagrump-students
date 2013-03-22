@@ -226,7 +226,7 @@ double Controller::estimateParameters() {
     // } else if(lastPB <= lastcint) {
     //   lastPB = lastcint;
     //   //cwind += 1;
-    // }
+    }
   }
 
   return cwindDL;
