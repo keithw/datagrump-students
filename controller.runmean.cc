@@ -24,7 +24,7 @@ Controller::Controller( const bool debug )
     cwind(5),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
-    resolution(80),
+    resolution(100),
     rtt(40),
     rttsum(400),
     rttn(10),
@@ -108,7 +108,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
                                /* when the acknowledged packet was received */
                                const uint64_t timestamp_ack_received )
 {
-  double rtteps=15;
+  double rtteps=20;
   //push new packet info onto queue
   stimes.push_front(send_timestamp_acked);
   rtimes.push_front(recv_timestamp_acked);
@@ -135,8 +135,8 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     double mrtt=diffsum/((int)rtimes.size());
     //fprintf(stderr,"rttmean: %i\n",(int)mrtt);
     // if our RTT is low and stable with at least 2xRTT our last time
-    if(mrtt< (rtt/2+rtteps/4) && ((timestamp_ack_received-lastspike)>2*(rtt))){
-      cwind=bwest*(rtt+2*rtteps);
+    if(mrtt< (rtt/2+rtteps/2) && ((timestamp_ack_received-lastspike)>2*(rtt))){
+      cwind=bwest*(rtt+4*rtteps);
       lastspike=timestamp_ack_received;
       fprintf(stdout,"%i,%i,%i,%.4f,%.4f,TRUE,%.4f\n",
 	      (int)(timestamp_ack_received-start_time),
@@ -234,9 +234,9 @@ int Controller::chompWindow(int cint, double cwindDL) {
     //fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
     cint = 1;//cint/2;
   }
-  else if ((lastAck > 0)  && (cint == (int)lastCW)) {
+  /*else if ((lastAck > 0)  && (cint == (int)lastCW)) {
     cint += 1; // don't ever stay in a state without exploring up
-  }
+    }*/
   // // make sure %change in cint isn't too spiky : causes delays
   // if ((lastCW > 0) && (cint > (int)lastCW))
   //   if ((cint - lastCW)/float(lastCW) > 2) // change by more than 200%
