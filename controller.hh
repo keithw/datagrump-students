@@ -12,6 +12,7 @@ public:
   struct ConfigParams {
     double AI;
     double MD;
+    double use_capacity_estimate;
     double AVG;
     double derivAVG;
     double ack_interval_size;

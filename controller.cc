@@ -14,7 +14,7 @@ Controller::Controller( const bool debug )
   : debug_( debug ),
     w_size_(50),
     rtt_last_(0),
-    rtt_min_(40),
+    rtt_min_(-1),
     rtt_max_(0),
     rtt_sum_(0),
     acks_count_(0),
@@ -37,9 +37,10 @@ Controller::Controller( const bool debug )
   /* Default parameters */
   params_.AI = 1.0;
   params_.MD = 0.5;
+  params_.use_capacity_estimate = false;
   params_.AVG = 0.2;
   params_.derivAVG = 0.7;
-  params_.ack_interval_size = 40; // ms
+  params_.ack_interval_size = 60; // ms
 
   LoadParams("controller_config.txt");
 }
@@ -50,6 +51,7 @@ void Controller::LoadParams(const char* filename) {
     ifstream param_file(filename);
     param_file >> params_.AI;
     param_file >> params_.MD;
+    param_file >> params_.use_capacity_estimate;
   } catch (...) {
     fprintf( stderr, "Read error, params will have default values.\n");
   }
@@ -70,9 +72,7 @@ unsigned int Controller::window_size( void )
 
 /* A packet was sent */
 void Controller::packet_was_sent( const uint64_t sequence_number,
-				  /* of the sent packet */
-				  const uint64_t send_timestamp )
-                                  /* in milliseconds */
+            const uint64_t send_timestamp )
 {
   last_packet_sent_ = sequence_number;
 
@@ -102,14 +102,15 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   fprintf(stdout, "At time %lu, RTT: %.1f\n", timestamp_ack_received, rtt);
   update_rtt_stats(rtt);
 
-  /* Record ack and update estimates */
-  last_ack_received_ = sequence_number_acked;
-  acks_.push_back(Ack(send_timestamp_acked, recv_timestamp_acked,
-        timestamp_ack_received));
+  /* Update window based on RTT average */
+  w_size_ = max(w_size_ + log(pow((1/(rtt_ratio_/2.2)),10))*(params_.AI / max(w_size_, 1.0)),1.0);
 
-  /* This is where the stuff happens */
-  update_window_size(timestamp_ack_received);
-
+  if (params_.use_capacity_estimate) {
+    last_ack_received_ = sequence_number_acked;
+    acks_.push_back(Ack(send_timestamp_acked, recv_timestamp_acked,
+          timestamp_ack_received));
+    update_window_size(timestamp_ack_received);
+  }
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
 	     timestamp_ack_received - initial_timestamp_, sequence_number_acked );
@@ -122,17 +123,11 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  /* If the min_rtt should be around 40ms, and we are not dropping the w_size
-   * on timeout, we shouldn't wait more than 60ms. */
   return 60;
 }
 
 void Controller::packet_timed_out(void)
 {
-  /* Let's let only the estimated_capacity decrease the window */
-  // w_size_ = w_size_ - params_.MD * w_size_;
-  // update_window_size(timestamp()); // This won't change anything
-  // if the window is recomputed completely at ack_received.
 }
 
 void Controller::update_rtt_stats(const double rtt)
@@ -199,18 +194,9 @@ void Controller::update_window_size(const uint64_t timestamp) {
   capacity_next_ = capacity_avg_ +
     capacity_derivative_avg_ * (timestamp - processed_timestamp_) / 100;
   fprintf( stdout, "%f %f \n", capacity_avg_, capacity_next_);
-  //capacity_next_ = capacity_avg_;
-
   queue_estimate_ = (rtt_last_ - rtt_min_) * capacity_avg_;
-  // queue_estimate_ = max(0.0, last_packet_sent_ - last_ack_received_ - capacity_avg_ * rtt_min_);
 
   if (capacity_next_ > 0) {
-    /* We use twice the capacity average (2 * bddelay) to ensure a high throughput and
-     * substract the capacity reserved for draining the queue in time drain_time_ = 100ms */
-    double rtt_max = 70;
-    w_size_ = max(1.0, capacity_next_ * rtt_max - queue_estimate_ / 100 * rtt_min_);
- } else {
-    /* Black magic heuristic */
-    w_size_ = max(w_size_ + log(pow((1/(rtt_ratio_/2)),10))*(params_.AI / max(w_size_, 1.0)),1.0);
+     w_size_ = max(1.0, 1.95 * capacity_next_ * 40 - queue_estimate_ / 100 * 40);
   }
 }
