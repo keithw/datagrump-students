@@ -43,6 +43,7 @@ public:
   std::queue<int>  runmean;
   std::list<uint64_t> packetBalance;
   double resolution;
+  double resolutionLR;
   double rtt;
   double rttsum;
   double rttn;
