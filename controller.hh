@@ -15,11 +15,14 @@ public:
   uint64_t probes_count;
 
   static const int TIMEOUT = 100;
-  //static const int PROBE_TIMEOUT = 50;
     
 private:
   // What is acked, we might ask?!
-  std::set < uint64_t > acked;
+  uint64_t last_acked = -1;
+
+  uint64_t last_acked_time = 0;
+  uint64_t last_acked_diff = 0;
+  uint64_t last_acked_count = 0;
   // Sorted in time, who should be acked by that time
   std::priority_queue < std::pair < uint64_t, uint64_t > > should_acked;
     
@@ -27,14 +30,10 @@ private:
   
   int mode;
     
-  /* AIMD constants here */
-  static const double ADDITIVE_INCREASE;
-  static const double MULTIPLICATIVE_DECREASE ; //divide by this number
-  static const int AIMD_TIMEOUT = 100;
-  
   /* Delay trigger mode */
-  static const int DELAY_UPPER_BOUND = 150;
-  static const int DELAY_LOWER_BOUND = 80;
+  static const int DELAY_UPPER_BOUND = 100;
+  static const int DELAY_LOWER_BOUND = 40;
+  static const int DELAY_LOWER_BOUND2 = 80;
   static const double DELAY_TRIGGER_DECREASE;
   static const double DELAY_TRIGGER_INCREASE;
   static const double SUPER_DELAY_TRIGGER_INCREASE;
@@ -42,12 +41,9 @@ private:
   /* Add member variables here */
   static const int BASELINE_WINDOW_SIZE = 20;
   static const int CONSERVATIVE_WINDOW_SIZE = 1;
-  static const int DELAY_INCR_THRESHOLD = 150;
-  static const int DELAY_DECR_THRESHOLD = 50;
   
   int late_packet_count = 0;
-  
-  
+
   double the_window_size;
   
   void ack_received_fixed_window_size( const uint64_t sequence_number_acked,
