@@ -31,7 +31,6 @@ Controller::Controller( const bool debug )
     packetBalance(list<uint64_t>()),
     resolution(100),
     resolutionLR(200),
-    rtt(40),
     rttsum(400),
     rttn(10),
     ackTracker(0.0),
@@ -159,8 +158,8 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     double mrtt=diffsum/((int)rtimes.size());
     //fprintf(stderr,"rttmean: %i\n",(int)mrtt);
     // if our RTT is low and stable with at least 2xRTT our last time
-    if(mrtt< (rtt/2+rtteps/4) && ((timestamp_ack_received-lastspike)>(rtt))){
-      cwind=bwest*(rtt+2*rtteps);
+    if(mrtt< (RTT/2+rtteps/4) && ((timestamp_ack_received-lastspike)>(RTT))){
+      cwind=bwest*(RTT+2*rtteps);
       lastspike=timestamp_ack_received;
       fprintf(stdout,"%i,%i,%i,%.4f,%.4f,TRUE,%.4f\n",
 	      (int)(timestamp_ack_received-start_time),
@@ -170,7 +169,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
 	      cwind,
 	      mrtt);
     }else{
-      cwind= bwest*(rtt+rtteps);
+      cwind= bwest*(RTT+rtteps);
       fprintf(stdout,"%i,%i,%i,%.4f,%.4f,FALSE,%.4f\n",
 	      (int)(timestamp_ack_received-start_time),
 	      (int)(recv_timestamp_acked-send_timestamp_acked),
@@ -180,7 +179,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
 	      mrtt);
     }
   }else{
-    cwind= bwest*(rtt+rtteps);
+    cwind= bwest*(RTT+rtteps);
       fprintf(stdout,"%i,%i,%i,%.4f,%.4f,FALSE,-1\n",
 	      (int)(timestamp_ack_received-start_time),
 	      (int)(recv_timestamp_acked-send_timestamp_acked),
