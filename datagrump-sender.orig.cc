@@ -36,10 +36,12 @@ int main( int argc, char *argv[] )
     uint64_t sequence_number = 0;
     uint64_t next_ack_expected = 0;
 
-    /* Initialize flow controller */
-    Controller controller( debug );
+
     //THIS IS IMPORTANT, DO NOT REMOVE, removes 1s delay
     usleep(200*1000);
+
+    /* Initialize flow controller */
+    Controller controller( debug );
     /* Loop */
     while ( 1 ) {
       /* Ask controller: what is the window size? */
