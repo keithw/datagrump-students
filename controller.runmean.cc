@@ -194,7 +194,7 @@ double Controller::estimateParameters() {
   double cwindDL = ackRateObs * rttest;
   if (ackRateObs >= ackRateEst) {
     if (rho < 0.5) { // some queue?
-      return cwind/2;
+      return cwind/1.5;
     }
 
     // if we are getting acks faster => network has recoved and queue is
@@ -208,7 +208,7 @@ double Controller::estimateParameters() {
       cwind += (cwind - lastcwind)*2;
   } else {
     if (rho < 0.5) cwind += 1; // (cwind - lastcwind)*2;
-    else cwind -= 1;
+    else if (cwind >= 1) cwind -= 1;
     // // if we are getting acks slower => network is putting stuff in a queue somewhere
     // // This means we need to slow down.
 
