@@ -5,6 +5,8 @@
 
 #include <stdint.h>
 
+using namespace std;
+
 /* Flow controller interface */
 
 class Controller
@@ -48,14 +50,20 @@ public:
   double rttsum;
   double rttn;
   double ackTracker ;
+  double delayTracker;
   double ackLastDelta ;
   uint64_t lastAck ;
   bool networkDown;
   unsigned int recovery ;
   unsigned int lastPB ;
-  unsigned int lastCW ;
+  unsigned int lastcint ;
+  unsigned int lastcwind;
   uint64_t start_time ;
   double rho;
+
+  list< pair<uint64_t, uint64_t> > burstPackets;
+  list< pair<uint64_t, uint64_t> > sendTimestamp;
+
 
   double estimateParameters();
   void refineParameters(const uint64_t sequence_number_acked,
@@ -73,7 +81,7 @@ public:
                         /* when the acknowledged packet was received */
                         const uint64_t timestamp_ack_received );
 
-  int chompWindow(int cint, double cwindDL);
+  int chompWindow(unsigned int cint, double cwindDL);
   void markBeginning(const uint64_t start_sequence_number, const uint64_t end_sequence_number);
 };
 
