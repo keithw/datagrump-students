@@ -144,7 +144,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     double mrtt=diffsum/((int)rtimes.size());
     //fprintf(stderr,"rttmean: %i\n",(int)mrtt);
     // if our RTT is low and stable with at least 2xRTT our last time
-    if(mrtt< (rtt/2+rtteps/4) && ((timestamp_ack_received-lastspike)>(rtt))){
+    if(mrtt< (rtt/2+rtteps/3) && ((timestamp_ack_received-lastspike)>(rtt))){
       cwind=bwest*(rtt+2*rtteps);
       lastspike=timestamp_ack_received;
       fprintf(stdout,"%i,%i,%i,%.4f,%.4f,TRUE,%.4f\n",
