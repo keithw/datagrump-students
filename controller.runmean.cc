@@ -51,7 +51,6 @@ Controller::Controller( const bool debug )
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
-  refineParametersWhenSend(timestamp());
   //double cwindDL = estimateParameters();
   int cint = (int) cwind;
   if(cint<1){cint=1;}
