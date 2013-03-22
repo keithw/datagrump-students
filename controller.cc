@@ -110,10 +110,10 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   //uint64_t rttAvg = sa >> 3;
 //  uint64_t avgChange = sasa >> 2;
   //if (rtt > RTT_THRESHOLD_MS) {
-  if (rtt > RTT_THRESHOLD_MS && (sasa >> 2) > 10) {
+  if (rtt > (minRTT * 2) && (sasa >> 2) > 10) {
     cwnd = std::max(cwnd - 1, CWND_MIN);
   } else {
-    if (rtt < (minRTT + 15)) {
+    if (rtt < (minRTT + 10)) {
       count += 2;
     } else {
       count += 1;
