@@ -24,7 +24,7 @@ Controller::Controller( const bool debug )
     cwind(10),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
-    resolution(75),
+    resolution(80),
     rtt(40),
     rttsum(400),
     rttn(10),
@@ -84,7 +84,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* when the ack was received (by sender) */
 {
   refineParameters(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
-  refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
+  //refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
              timestamp_ack_received, sequence_number_acked );
@@ -136,7 +136,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     //fprintf(stderr,"rttmean: %i\n",(int)mrtt);
     // if our RTT is low and stable with at least 2xRTT our last time
     if(mrtt< (rtt/2+rtteps/2) && ((timestamp_ack_received-lastspike)>(rtt))){
-      cwind=bwest*(rtt+3*rtteps);
+      cwind=bwest*(rtt+2*rtteps);
       lastspike=timestamp_ack_received;
       fprintf(stdout,"%i,%i,%i,%.4f,%.4f,TRUE,%.4f\n",
 	      (int)(timestamp_ack_received-start_time),
