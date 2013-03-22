@@ -185,7 +185,7 @@ double Controller::estimateParameters() {
   if (ackRateObs >= ackRateEst) {
     // if we are getting acks faster => network has recoved and queue is
     // being flushed and we are getting fast responses
-    double wt = 0.5;
+    //double wt = 0.5;
     //if (rho > 0.25) wt = 0.9;
     fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
     // cwind = (wt*cwindDL + (1-wt)*cwind);
