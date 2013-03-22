@@ -10,24 +10,9 @@ using namespace Network;
 Controller::Controller( const bool debug )
   : debug_( debug ), window(30), window_float(30.0), timeout(1500),
   rtt(0), srtt(0), alpha(0.4), dev(0), rttdev(0),
-  beta(0.4), rtt_rec{0,0,0,0,0}, rsize(sizeof(rtt_rec)/sizeof(float))
-{
-	/*window = 15;
-	window_float = 15;
-	timeout = 1000;
-	timeout_float = 1000;
-	rtt = 1000;
-	srtt = 1000;
-	alpha = 0.5;*/
-	
-  /*unsigned int window = 15;
-  unsigned int timeout = 1000;
-  float window_float = 15;
-  float timeout_float = 1000;
-  uint64_t srtt = 1000;
-  uint64_t rtt = 1000;
-  float alpha = 0.5;*/
-  
+  beta(0.4), rtt_rec{0,0,0}, rsize(sizeof(rtt_rec)/sizeof(float)),
+  avg(0)
+{ 
 }
 
 /* Get current window size, in packets */
@@ -98,15 +83,15 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   rttdev = (beta*dev) + ((1-beta)*rttdev);
   timeout = srtt + (4*rttdev);
   
-  unsigned int avg = 0;
+  avg = 0;
   for (int n=0 ; n<rsize ; n++ ){
   	avg = avg + rtt_rec[n];
   }
   avg = avg/rsize;
   
-  //int avg_i = (int) avg;
-  //int rtt_i = (int) rtt;
-  if (rtt < (avg)){
+  int avg_i = (int) avg;
+  int rtt_i = (int) rtt;
+  if (rtt < (1.2*avg)){
   	//window_float = (1.0+(1.0*(avg_i-rtt_i)/avg_i))*window_float;// + (1.0/window);
   	window_float = 1.2*window_float;
   }
@@ -129,6 +114,7 @@ unsigned int Controller::timeout_ms( void )
 	fprintf( stderr, "srtt = %u.\n", srtt );
 	fprintf( stderr, "dev = %u.\n", dev );
 	fprintf( stderr, "rttdev = %u.\n", rttdev );
+	fprintf( stderr, "avg = %u.\n", avg );
 	fprintf( stderr, "timeout = %u.\n", timeout );
 	return timeout;
   //return 1000; /* timeout of one second */

@@ -20,8 +20,9 @@ private:
   int dev;
   int rttdev;
   float beta;
-  unsigned int rtt_rec [5];
+  unsigned int rtt_rec [3];
   int rsize;
+  unsigned int avg;
 
 public:
   /* Public interface for the flow controller */
