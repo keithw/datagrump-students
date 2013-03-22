@@ -122,7 +122,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   if(sequence_number_acked < 10){
     return;
   }
-  double rtteps=19;
+  double rtteps=18;
   //push new packet info onto queue
   stimes.push_front(send_timestamp_acked);
   rtimes.push_front(recv_timestamp_acked);
