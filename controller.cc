@@ -103,10 +103,10 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   avg = avg/rsize;
   
   if (rtt > (avg)){
-  	window_float = window_float + (1.0/window);
+  	window_float = window_float + (2.0/window);
   }
   else{
-  	window_float = window_float - (2.0/window);
+  	window_float = window_float - (1.0/window);
   }
   
   for (int n=0 ; n<(rsize-1) ; n++ ){
@@ -121,6 +121,8 @@ unsigned int Controller::timeout_ms( void )
 {
 	fprintf( stderr, "rtt = %u.\n", rtt );
 	fprintf( stderr, "srtt = %u.\n", srtt );
+	fprintf( stderr, "dev = %u.\n", dev );
+	fprintf( stderr, "rttdev = %u.\n", rttdev );
 	fprintf( stderr, "timeout = %u.\n", timeout );
 	return timeout;
   //return 1000; /* timeout of one second */
