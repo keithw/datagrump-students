@@ -110,7 +110,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
                                /* when the acknowledged packet was received */
                                const uint64_t timestamp_ack_received )
 {
-  double rtteps=15;
+  double rtteps=20;
   //push new packet info onto queue
   stimes.push_front(send_timestamp_acked);
   rtimes.push_front(recv_timestamp_acked);
@@ -121,17 +121,17 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     /*fprintf( stderr, "pop %i, timediff %lu \n",
       runmean.front(),timestamp_ack_received-runmean.front());*/
     runmean.pop();
-    stimes.pop_back();
-    rtimes.pop_back();
   }
   // Long range queue trim
   while(runmeanLR.size()>0 && (timestamp_ack_received-runmeanLR.front())>(resolutionLR)){
     runmeanLR.pop();
+    stimes.pop_back();
+    rtimes.pop_back();
   }
   //fprintf(stderr, "size: %i\n",(int)runmean.size());
   double bwestSR=((double)runmean.size())/resolution;
   double bwestLR=((double)runmeanLR.size())/resolutionLR;
-  double bwest=(bwestSR+bwestLR*1.5)/(1+1.5);
+  double bwest=(bwestSR+bwestLR*4)/(1+4);
   if(rtimes.size()>0){
     std::list<int>::const_iterator rIt=rtimes.begin();
     std::list<int>::const_iterator sIt=stimes.begin();
