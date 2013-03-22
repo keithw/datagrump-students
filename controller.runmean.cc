@@ -131,7 +131,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   //fprintf(stderr, "size: %i\n",(int)runmean.size());
   double bwestSR=((double)runmean.size())/resolution;
   double bwestLR=((double)runmeanLR.size())/resolutionLR;
-  double bwest=(bwestSR+bwestLR*1.5)/(1+1.5);
+  double bwest=(bwestSR+bwestLR*2)/(1+2);
   if(rtimes.size()>0){
     std::list<int>::const_iterator rIt=rtimes.begin();
     std::list<int>::const_iterator sIt=stimes.begin();
