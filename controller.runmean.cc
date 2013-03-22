@@ -60,6 +60,7 @@ Controller::Controller( const bool debug )
 unsigned int Controller::window_size( void )
 {
   double cwindDL = estimateParameters();
+assert(cwindDL >= 0) ;
   int cint = (int) cwind;
   //cint = chompWindow(cint, cwindDL);
   if(cint<1){cint=1;}
