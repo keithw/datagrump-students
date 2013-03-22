@@ -43,6 +43,8 @@ int main( int argc, char *argv[] )
     while ( 1 ) {
       /* Ask controller: what is the window size? */
       unsigned int window_size = controller.window_size();
+//      double est_rate = controller.get_rate_estimate();
+      
 
       /* fill up window */
       while ( sequence_number - next_ack_expected < window_size ) {

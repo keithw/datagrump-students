@@ -23,6 +23,8 @@ public:
   /* Get current window size, in packets */
   unsigned int window_size( void );
 
+  double get_rate_estimate(); 
+
   /* A packet was sent */
   void packet_was_sent( const uint64_t sequence_number,
 			const uint64_t send_timestamp );
