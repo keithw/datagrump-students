@@ -108,7 +108,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
                                /* when the acknowledged packet was received */
                                const uint64_t timestamp_ack_received )
 {
-  double rtteps=20;
+  double rtteps=15;
   //push new packet info onto queue
   stimes.push_front(send_timestamp_acked);
   rtimes.push_front(recv_timestamp_acked);
@@ -257,7 +257,7 @@ int Controller::chompWindow(int cint, double cwindDL) {
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 40; /* timeout of one second */
+  return 50; /* timeout of one second */
 }
 
 
