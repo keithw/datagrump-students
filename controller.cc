@@ -26,7 +26,7 @@ unsigned int Controller::window_size( void )
   for(it=unacked.begin(); it != unacked.end(); it++) {
     delta = timestamp() - (it->second);
     if (delta > timeout_ms()){
-      ws = ws/2.0; //halve window size
+      ws = (((ws/3.0) >= 1.0)? (ws/3.0) : 1.0); //halve window size
       fprintf( stderr, "Pkt number %lu timed out\n", (it->first));
       unacked.erase(it->first);
     }
@@ -70,8 +70,9 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   //remove received packet from map
   if(unacked.find(sequence_number_acked) != unacked.end()){
     unacked.erase(sequence_number_acked);//erase the entry, if it existed (might not after timeout)
+    fprintf(stderr, "pre-increase ws  = %f\n", ws);
     ws+=(2.0/ws);
-    else fprintf(stderr, "Ack not found in outstanding\n");
+    fprintf(stderr, "post ws = %f\n", ws);
   } else fprintf(stderr, "Ack not found in outstanding\n");
   
   
