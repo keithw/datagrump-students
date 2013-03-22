@@ -119,6 +119,9 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
+	fprintf( stderr, "rtt = %lu.\n", rtt );
+	fprintf( stderr, "srtt = %lu.\n", srtt );
+	fprintf( stderr, "timeout_float = %f.\n", timeout_float );
 	timeout = (unsigned int) timeout_float;
 	fprintf( stderr, "timeout = %d.\n", timeout );
 	return timeout;
