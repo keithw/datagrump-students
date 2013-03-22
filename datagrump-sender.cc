@@ -60,10 +60,10 @@ int main( int argc, char *argv[] )
 	      throw string( "poll returned error." );
       } else if ( packet_received == 0 ) { /* timeout */
 	      /* send a packet */
-	      // Packet x( destination, sequence_number++ );
-	      // sock.send( x );
-	      // controller.packet_was_sent( x.sequence_number(),
-				//     x.send_timestamp() );
+	      Packet x( destination, sequence_number++ );
+	      sock.send( x );
+	      controller.packet_was_sent( x.sequence_number(),
+				    x.send_timestamp() );
 	      /* tell the controller */
 	      controller.packet_timed_out();
       } else {
