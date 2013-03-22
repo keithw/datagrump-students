@@ -188,7 +188,7 @@ double Controller::estimateParameters() {
     double wt = 0.5;
     //if (rho > 0.25) wt = 0.9;
     fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
-    cwind = (wt*cwindDL + (1-wt)*cwind);
+    // cwind = (wt*cwindDL + (1-wt)*cwind);
   } else {
     // // if we are getting acks slower => network is putting stuff in a queue somewhere
     // // This means we need to slow down
