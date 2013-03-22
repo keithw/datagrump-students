@@ -254,12 +254,12 @@ int Controller::chompWindow(unsigned int cint, double cwindDL) {
   // TODO: change 75 to something related to ~ 2*rtt!!. Try 1.5 or something
   if ((lastAck > 0)) {
     if ((lastAck > 0) && ((tStamp - lastAck) > (1.5*RTT))) {
-      fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
+      //fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
       // desired queue buildup should be bw * rtt? Space this out
       // make sure we sent two back to back packets for good estimates
-      int u = (1*(int) (1*(tStamp - lastAck)/((double)RTT) - sendTimestamp.size()))/1;
-      if (u >= 0) cint = u;
-      else cint = 0;
+      // int u = (1*(int) (1*(tStamp - lastAck)/((double)RTT) - sendTimestamp.size()))/1;
+      // if (u >= 0) cint = u;
+      // else cint = 0;
       //cint = 0;
       networkDown = true;
     }
@@ -277,10 +277,10 @@ int Controller::chompWindow(unsigned int cint, double cwindDL) {
   //     cint = 2*lastcint; // can't be anything less than 2 since we are dealing with
   //                      // integers. May give issues with small numbers
 
-  if ( debug_ ) {
-    fprintf( fsend, "@%lu, %d, %.4f, %.4f, %.4f, %u, %.2f, %.1f, %lu\n",
-             (tStamp - start_time), cint, cwindDL, cwind, ackTracker, lastcint, ackLastDelta, RTT, (lastAck > 0) ? (tStamp - lastAck) : 0);
-  }
+  // if ( debug_ ) {
+  //   fprintf( fsend, "@%lu, %d, %.4f, %.4f, %.4f, %u, %.2f, %.1f, %lu\n",
+  //            (tStamp - start_time), cint, cwindDL, cwind, ackTracker, lastcint, ackLastDelta, RTT, (lastAck > 0) ? (tStamp - lastAck) : 0);
+  // }
 
   lastcwind = cwind;
   lastcint = cint;

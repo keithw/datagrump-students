@@ -80,10 +80,10 @@ int main( int argc, char *argv[] )
         //   ;
         // else {
           /* send a packet */
-          // Packet x( destination, sequence_number++ );
-          // sock.send( x );
-          // controller.packet_was_sent( x.sequence_number(),
-          //                             x.send_timestamp() );
+          Packet x( destination, sequence_number++ );
+          sock.send( x );
+          controller.packet_was_sent( x.sequence_number(),
+                                      x.send_timestamp() );
         // }
       } else {
         /* we got an acknowledgment */
