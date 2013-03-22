@@ -202,27 +202,27 @@ double Controller::estimateParameters() {
   if (rho > 0.5) { // we have confident, recent estimates
     if ((delayTracker <= (1.1*RTT)) && (ackRateObs > ackRateEst)) {
       fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
-      wt = 0.0;//9;
+      wt = 0.1;//9;
       cwind =  (wt*cwindDL + (1-wt)*cwind);
       if (cwind > lastcwind)
         cwind += 2;
     }
     else if ((delayTracker > (1.5*RTT)) && (delayTracker < (2*RTT)) && (cwind > 1) && (ackRateObs < ackRateEst))
       cwind -= 1;
-    else if ((delayTracker > (2.0*RTT)) && (cwind > 1)  && (ackRateObs < ackRateEst))
-      cwind -= 2;
+    // else if ((delayTracker > (2.0*RTT)) && (cwind > 1)  && (ackRateObs < ackRateEst))
+    //   cwind -= 2;
   } else { // not so confident
     // if ((delayTracker <= (1.1*RTT)) && (ackRateObs > ackRateEst)) {
     //   fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
-    //   wt = 0.5;
+    //   wt = 0.0;//9;
     //   cwind =  (wt*cwindDL + (1-wt)*cwind);
     //   if (cwind > lastcwind)
-    //     cwind += 1; // (cwind - lastcwind)*2;
+    //     cwind += 2;
     // }
-    // else if ((delayTracker > (1.5*RTT)) && (delayTracker < (2*RTT)) && (cwind > 1))
+    // else if ((delayTracker > (1.5*RTT)) && (delayTracker < (2*RTT)) && (cwind > 1) && (ackRateObs < ackRateEst))
     //   cwind -= 1;
-    // else if ((delayTracker > (2.0*RTT)) && (cwind > 1))
-    //   cwind -=1;
+    // // else if ((delayTracker > (2.0*RTT)) && (cwind > 1)  && (ackRateObs < ackRateEst))
+    // //   cwind -= 2;
 
   }
   return cwindDL;
