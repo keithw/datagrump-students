@@ -197,7 +197,6 @@ double Controller::estimateParameters() {
     // if we are getting acks faster => network has recoved and queue is
     // being flushed and we are getting fast responses
     double wt = 0.5;
-    if (rho > 0.25) wt = 0.8;
     fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
     cwind = (wt*cwindDL + (1-wt)*cwind);
 
@@ -205,28 +204,28 @@ double Controller::estimateParameters() {
     if (cwind > lastcwind)
       cwind = (cwind - lastcwind)*2;
   } else {
-    // if we are getting acks slower => network is putting stuff in a queue somewhere
-    // This means we need to slow down.
+    // // if we are getting acks slower => network is putting stuff in a queue somewhere
+    // // This means we need to slow down.
 
-    // Need to check if the rate is dropping because we dropped cwind. If cwind was
-    // increasing, then we really need to drop the window
-    if (rho > 0.25) { /// we have recently observed a drop in rate
-      double wt = 0.5;
-      cwind = (wt*cwindDL*0.5 + (1-wt)*cwind);
-    } else {// we have a time - lagged estimate
-    //   if (cwind >)
+    // // Need to check if the rate is dropping because we dropped cwind. If cwind was
+    // // increasing, then we really need to drop the window
+    // if (rho > 0.25) { /// we have recently observed a drop in rate
+    //   double wt = 0.5;
+    //   cwind = (wt*cwindDL*0.5 + (1-wt)*cwind);
+    // } else {// we have a time - lagged estimate
+    // //   if (cwind >)
+    // // }
+    // // if ((lastcint > 1) && (lastcint >= (1.7*cwind))) {
+    // //   // we owe a debt we may not be able to pay
+    // //   double delta = lastcint - cwind;
+    // //   fprintf(fsend, "%lu: overflow by %.2f : %.2f -> ", tStamp,  delta, cwind);
+    // //   if (delta < 2*cwind) cwind -= delta/2;
+    // //   else cwind /= 2;
+    // //   fprintf(stderr, "%.2f \n", cwind);
+    // // } else if(lastPB <= lastcint) {
+    // //   lastPB = lastcint;
+    // //   //cwind += 1;
     // }
-    // if ((lastcint > 1) && (lastcint >= (1.7*cwind))) {
-    //   // we owe a debt we may not be able to pay
-    //   double delta = lastcint - cwind;
-    //   fprintf(fsend, "%lu: overflow by %.2f : %.2f -> ", tStamp,  delta, cwind);
-    //   if (delta < 2*cwind) cwind -= delta/2;
-    //   else cwind /= 2;
-    //   fprintf(stderr, "%.2f \n", cwind);
-    // } else if(lastPB <= lastcint) {
-    //   lastPB = lastcint;
-    //   //cwind += 1;
-    }
   }
 
   return cwindDL;
