@@ -5,6 +5,8 @@
 
 #include <stdint.h>
 
+using namespace std;
+
 /* Flow controller interface */
 
 class Controller
@@ -58,6 +60,10 @@ public:
   unsigned int lastcwind;
   uint64_t start_time ;
   double rho;
+
+  list< pair<uint64_t, uint64_t> > burstPackets;
+  list< pair<uint64_t, uint64_t> > sendTimestamp;
+
 
   double estimateParameters();
   void refineParameters(const uint64_t sequence_number_acked,

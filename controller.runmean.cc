@@ -16,8 +16,6 @@ queue<int>  runmean;
 queue<int>  runmeanLR;//long-range queue
 list<int>  stimes;
 list<int>  rtimes;
-list< pair<uint64_t, uint64_t> > burstPackets;
-list< pair<uint64_t, uint64_t> > sendTimestamp;
 
 #define RTT 40.0
 FILE *fsend = stderr;
@@ -46,7 +44,9 @@ Controller::Controller( const bool debug )
     lastcint(1),
     lastcwind(1),
     start_time(timestamp()),
-    rho(0.25)
+    rho(0.25),
+    sendTimestamp(list< pair<uint64_t, uint64_t> >()),
+    burstPackets(list< pair<uint64_t, uint64_t> >())
 {
   start_time = timestamp();
   fprintf( stderr, "startTime %lu\n", start_time);
