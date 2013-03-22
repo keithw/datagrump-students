@@ -8,7 +8,7 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), cwnd(75), count(0), sa(0), sv(0), rto(500), sasa(0),
+  : debug_( debug ), cwnd(100), count(0), sa(0), sv(0), rto(1200), sasa(0),
     previousSA(0), minRTT(5000), sendTimestamps(), slowStart(true)
 {
 }
@@ -113,8 +113,9 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   if (rtt > RTT_THRESHOLD_MS && (sasa >> 2) > 10) {
     cwnd = std::max(cwnd - 1, CWND_MIN);
   } else {
-    count += 1;
-    if (rtt < (minRTT + 20)) {
+    if (rtt < (minRTT + 15)) {
+      count += 2;
+    } else {
       count += 1;
     }
     //if ((sasa >> 2) < 0 && ((sa >> 3) < RTT_THRESHOLD_MS)) {
