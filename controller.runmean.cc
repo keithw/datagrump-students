@@ -7,13 +7,15 @@
 #include "timestamp.hh"
 
 using namespace Network;
+using namespace std;
+
 double cwind;
-std::queue<int>  runmean;
-std::queue<int>  runmeanLR;//long-range queue
-std::list<int>  stimes;
-std::list<int>  rtimes;
-std::list< std::pair<uint64_t, uint64_t> > burstPackets;
-std::list< std::pair<uint64_t, uint64_t> > sendTimestamp;
+queue<int>  runmean;
+queue<int>  runmeanLR;//long-range queue
+list<int>  stimes;
+list<int>  rtimes;
+list< pair<uint64_t, uint64_t> > burstPackets;
+list< pair<uint64_t, uint64_t> > sendTimestamp;
 
 #define RTT 40.0
 FILE *fsend = stderr;
@@ -25,8 +27,8 @@ int lastspike = 0;
 Controller::Controller( const bool debug )
   : debug_( debug ),
     cwind(10),
-    runmean(std::queue<int>()),
-    packetBalance(std::list<uint64_t>()),
+    runmean(queue<int>()),
+    packetBalance(list<uint64_t>()),
     resolution(100),
     resolutionLR(200),
     rtt(40),
@@ -77,7 +79,7 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
     fprintf( stderr, "At time %lu, sent packet %lu.\n",
              send_timestamp, sequence_number );
   }
-  sendTimestamp.push_back(std::pair<uint64_t, uint64_t>(sequence_number, send_timestamp));
+  sendTimestamp.push_back(pair<uint64_t, uint64_t>(sequence_number, send_timestamp));
 }
 
 /* An ack was received */
@@ -138,8 +140,8 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   double bwestLR=((double)runmeanLR.size())/resolutionLR;
   double bwest=(bwestSR+bwestLR)/2;
   if(rtimes.size()>0){
-    std::list<int>::const_iterator rIt=rtimes.begin();
-    std::list<int>::const_iterator sIt=stimes.begin();
+    list<int>::const_iterator rIt=rtimes.begin();
+    list<int>::const_iterator sIt=stimes.begin();
     int diffsum=0;
     for(; (rIt!=rtimes.end() && sIt != stimes.end()); ++rIt, ++sIt){
     int rtime= *rIt;
@@ -304,7 +306,7 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
                                   const uint64_t recv_timestamp_acked,
                                   const uint64_t timestamp_ack_received ){
   double delay = RTT;
-  for (std::list< pair<uint64_t, uint64_t> >::iterator it = sendTimestamp.begin(); it != sendTimestamp.end(); ++it) {
+  for (list< pair<uint64_t, uint64_t> >::iterator it = sendTimestamp.begin(); it != sendTimestamp.end(); ++it) {
     if (it->first == sequence_number) {
       delay = timestamp_ack_received - it->second;
       sendTimestamp.erase(it);
@@ -350,5 +352,5 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
   networkDown = false;
 }
 void Controller::markBeginning(const uint64_t start_sequence_number, const uint64_t end_sequence_number) {
-  burstPackets.push_back(std::pair<uint64_t, uint64_t>(start_sequence_number, end_sequence_number));
+  burstPackets.push_back(pair<uint64_t, uint64_t>(start_sequence_number, end_sequence_number));
 }
