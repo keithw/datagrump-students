@@ -129,8 +129,8 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     rtimes.pop_back();
   }
   //account for truncation at start
-  int truncres = min(resolution,timestamp_ack_received-start_time);
-  int truncresLR = min(resolutionLR,timestamp_ack_received-start_time);
+  int truncres = std::min(resolution,timestamp_ack_received-start_time);
+  int truncresLR = std::min(resolutionLR,timestamp_ack_received-start_time);
   double bwestSR=((double)runmean.size())/truncres;
   double bwestLR=((double)runmeanLR.size())/truncresLR;
   double bwest=(bwestSR+bwestLR*4)/(1+4);
