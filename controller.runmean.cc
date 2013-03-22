@@ -242,6 +242,7 @@ double Controller::estimateParameters() {
 
 int Controller::chompWindow(unsigned int cint, double cwindDL) {
   if (lastAck == 0) return 5;
+  assert(cwindDL >= 0);
   //if (networkDown) return 0;
   uint64_t tStamp = timestamp();
   // if we have a zero congestion window, push it out of this regime
