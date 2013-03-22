@@ -241,10 +241,10 @@ double Controller::estimateParameters() {
 
 
 int Controller::chompWindow(unsigned int cint, double cwindDL) {
-  if (networkDown && (sendTimestamp.size() > 5)) {
-    //while (networkDown && (sendTimestamp.size() > 5)) usleep(1000);
-    return 2;
-  }
+  // if (networkDown && (sendTimestamp.size() > 5)) {
+  //   //while (networkDown && (sendTimestamp.size() > 5)) usleep(1000);
+  //   return 2;
+  // }
   if (networkDown) return 0;
   uint64_t tStamp = timestamp();
   // if we have a zero congestion window, push it out of this regime
