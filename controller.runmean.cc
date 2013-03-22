@@ -207,7 +207,8 @@ double Controller::estimateParameters() {
     if (cwind > lastcwind)
       cwind += (cwind - lastcwind)*2;
   } else {
-
+    if (rho < 0.5) cwind += 1;
+    else cwind -= 1;
     // // if we are getting acks slower => network is putting stuff in a queue somewhere
     // // This means we need to slow down.
 
