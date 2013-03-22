@@ -102,7 +102,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   update_rtt_stats(rtt);
 
   /* Method 1 (default): Update window size based on RTT ratio */
-  w_size_ = max(1.0, w_size_ + 10 * log(2.2 / rtt_ratio_) / max(w_size_, 1.0));
+  w_size_ = max(1.0, w_size_ + 10 * log(2.25 / rtt_ratio_) / max(w_size_, 1.0));
 
   /* Method 2: Update window size based on the capacity estimate */
   if (params_.use_capacity_estimate) {
@@ -128,6 +128,7 @@ unsigned int Controller::timeout_ms( void )
 
 void Controller::packet_timed_out(void)
 {
+  // This function is only used for the AIMD simulations.
 }
 
 void Controller::update_rtt_stats(const double rtt)
