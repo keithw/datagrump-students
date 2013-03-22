@@ -75,14 +75,15 @@ int main( int argc, char *argv[] )
         perror( "poll" );
         throw string( "poll returned error." );
       } else if ( packet_received == 0 ) { /* timeout */
+        controller.networkDown = true;
         // if (controller.networkDown && (controller.sendTimestamp.size() > 5))
         //   ;
         // else {
           /* send a packet */
-          Packet x( destination, sequence_number++ );
-          sock.send( x );
-          controller.packet_was_sent( x.sequence_number(),
-                                      x.send_timestamp() );
+          // Packet x( destination, sequence_number++ );
+          // sock.send( x );
+          // controller.packet_was_sent( x.sequence_number(),
+          //                             x.send_timestamp() );
         // }
       } else {
         /* we got an acknowledgment */
