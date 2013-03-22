@@ -45,8 +45,8 @@ Controller::Controller( const bool debug )
     lastcwind(1),
     start_time(timestamp()),
     rho(0.25),
-    sendTimestamp(list< pair<uint64_t, uint64_t> >()),
-    burstPackets(list< pair<uint64_t, uint64_t> >())
+                  burstPackets(list< pair<uint64_t, uint64_t> >()),
+    sendTimestamp(list< pair<uint64_t, uint64_t> >())
 {
   start_time = timestamp();
   fprintf( stderr, "startTime %lu\n", start_time);
