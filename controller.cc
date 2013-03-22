@@ -91,7 +91,7 @@ void Controller::ack_received(const uint64_t sequence_number_acked,
   }
 
   update_estimate(timestamp_ack_received,
-                  recv_timestamp_acked - send_timestamp_acked);
+                  (timestamp_ack_received - send_timestamp_acked) / 2);
 
   // It's important that we do this after update_estimate!
   cur_pkt_count++;
