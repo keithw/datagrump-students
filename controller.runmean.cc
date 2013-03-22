@@ -202,8 +202,8 @@ double Controller::estimateParameters() {
   if (rho > 0.5) { // we have confident, recent estimates
     if ((delayTracker <= (1.1*RTT)) && (ackRateObs > ackRateEst)) {
       fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
-      wt = 0.9;
-      // cwind =  (wt*cwindDL + (1-wt)*cwind);
+      wt = 0.0;//9;
+      cwind =  (wt*cwindDL + (1-wt)*cwind);
       // if (cwind > lastcwind)
       //   cwind += 1; // (cwind - lastcwind)*2;
     }
