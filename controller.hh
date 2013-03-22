@@ -23,6 +23,8 @@ private:
   unsigned int rtt_rec [3];
   int rsize;
   unsigned int avg;
+  float ratio;
+  int wb;
 
 public:
   /* Public interface for the flow controller */
