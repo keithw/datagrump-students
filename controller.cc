@@ -12,7 +12,7 @@ const int countdown_max = 4;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), w_size( 15.0 ), prev_send_time( 1.0 ), countdown( countdown_max ), fast( false )
+  : debug_( debug ), w_size( 15.0 ), prev_rtt( 1.0 ), countdown( countdown_max ), fast( false )
 {
 }
 
@@ -55,10 +55,10 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 {
   /* Default: take no action */
 
-  uint64_t send_time = timestamp_ack_received - send_timestamp_acked;
-  double send_delta = send_time / (double)prev_send_time;
+  uint64_t rtt = timestamp_ack_received - send_timestamp_acked;
+  double rtt_change = rtt / (double)prev_rtt;
 
-  if (send_delta < 1.0) {
+  if (rtt_change < 1.0) {
     if (countdown == 0) {
       countdown = countdown_max;
       fast = true;
@@ -69,14 +69,14 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   } else {
     fast = false;
     countdown = countdown_max;
-    prev_send_time = send_time;
+    prev_rtt = rtt;
   }
 
   if (fast) {
-    if (send_delta == 0) {
+    if (rtt_change == 0) {
       w_size = 15;
     } else {
-      w_size = 5.0 / sqrt(send_delta);
+      w_size = 5.0 / sqrt(rtt_change);
     }
   } else {
     w_size = 1;

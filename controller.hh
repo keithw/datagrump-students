@@ -10,7 +10,7 @@ class Controller
 private:
   bool debug_; /* Enables debugging output */
   double w_size;
-  uint64_t prev_send_time;
+  uint64_t prev_rtt;
   int countdown;
   bool fast;
   /* Add member variables here */
