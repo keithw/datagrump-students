@@ -49,6 +49,7 @@ Controller::Controller( const bool debug )
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
+  refineParametersWhenSend(timestamp());
   //double cwindDL = estimateParameters();
   int cint = (int) cwind;
   if(cint<1){cint=1;}
@@ -170,6 +171,64 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
 
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
              send_timestamp_acked, recv_timestamp_acked );
+  }
+}
+
+void Controller::refineParametersWhenSend(
+                               /* when the acknowledged packet was received */
+                               const uint64_t timestamp_ack_received )
+{
+  double rtteps=20;
+  //trim queue to only include last (resolution+rtt/2) of packets.
+  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution)){
+    /*fprintf( stderr, "pop %i, timediff %lu \n",
+      runmean.front(),timestamp_ack_received-runmean.front());*/
+    runmean.pop();
+    stimes.pop_back();
+    rtimes.pop_back();
+  }
+  //fprintf(stderr, "size: %i\n",(int)runmean.size());
+  double bwest=((double)runmean.size())/resolution;
+  if(rtimes.size()>0){
+    std::list<int>::const_iterator rIt=rtimes.begin();
+    std::list<int>::const_iterator sIt=stimes.begin();
+    int diffsum=0;
+    for(; (rIt!=rtimes.end() && sIt != stimes.end()); ++rIt, ++sIt){
+    int rtime= *rIt;
+    int stime= *sIt;
+    diffsum+=rtime-stime;
+    }
+    double mrtt=diffsum/((int)rtimes.size());
+    //fprintf(stderr,"rttmean: %i\n",(int)mrtt);
+    // if our RTT is low and stable with at least 2xRTT our last time
+    if(mrtt< (rtt/2+rtteps/4) && ((timestamp_ack_received-lastspike)>(rtt))){
+      cwind=bwest*(rtt+2*rtteps);
+      lastspike=timestamp_ack_received;
+      fprintf(stdout,"%i,%i,%i,%.4f,%.4f,TRUE,%.4f\n",
+	      (int)(timestamp_ack_received-start_time),
+	      (int)(recv_timestamp_acked-send_timestamp_acked),
+	      (int)(timestamp_ack_received-recv_timestamp_acked),
+	      bwest,
+	      cwind,
+	      mrtt);
+    }else{
+      cwind= bwest*(rtt+rtteps);
+      fprintf(stdout,"%i,%i,%i,%.4f,%.4f,FALSE,%.4f\n",
+	      (int)(timestamp_ack_received-start_time),
+	      (int)(recv_timestamp_acked-send_timestamp_acked),
+	      (int)(timestamp_ack_received-recv_timestamp_acked),
+	      bwest,
+	      cwind,
+	      mrtt);
+    }
+  }else{
+    cwind= bwest*(rtt+rtteps);
+      fprintf(stdout,"%i,%i,%i,%.4f,%.4f,FALSE,-1\n",
+	      (int)(timestamp_ack_received-start_time),
+	      (int)(recv_timestamp_acked-send_timestamp_acked),
+	      (int)(timestamp_ack_received-recv_timestamp_acked),
+	      bwest,
+	      cwind);
   }
 }
 
