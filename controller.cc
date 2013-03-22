@@ -11,7 +11,7 @@ Controller::Controller( const bool debug )
   : debug_( debug ), window(40), window_float(40.0), timeout(1500),
   rtt(0), srtt(0), alpha(0.4), dev(0), rttdev(0),
   beta(0.4), rtt_rec{0,0,0}, rsize(sizeof(rtt_rec)/sizeof(float)),
-  avg(0), ratio(0), wb(0)
+  avg(0), ratio(0), wb(3)
 { 
 }
 
@@ -92,7 +92,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   int avg_i = (int) avg;
   int rtt_i = (int) rtt;
   int diff = (avg_i-rtt_i)>0?(avg_i-rtt_i):(rtt_i-avg_i);
-  ratio = 1.0*diff/(1.0*avg_i);
+  ratio = 6.0*diff/(1.0*avg_i);
   if (rtt < (avg)){
   	//window_float = (1.0+(1.0*(avg_i-rtt_i)/avg_i))*window_float;// + (1.0/window);
   	//window_float = window_float + (4.75/window_float);
