@@ -202,7 +202,7 @@ double Controller::estimateParameters() {
 
     // look at slopes : If we are increasing, try to increase faster
     if (cwind > lastcwind)
-      cwind = (cwind - lastcwind)*2;
+      cwind += (cwind - lastcwind)*2;
   } else {
     // // if we are getting acks slower => network is putting stuff in a queue somewhere
     // // This means we need to slow down.
