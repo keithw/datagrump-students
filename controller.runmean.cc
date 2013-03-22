@@ -207,10 +207,10 @@ double Controller::estimateParameters() {
       if (cwind > lastcwind)
         cwind += 2;
     }
-    else if ((delayTracker > (1.5*RTT)) && (delayTracker < (2*RTT)) && (cwind > 1) && (ackRateObs > ackRateEst))
+    else if ((delayTracker > (1.5*RTT)) && (delayTracker < (2*RTT)) && (cwind > 1) && (ackRateObs < ackRateEst))
       cwind -= 1;
-    // else if ((delayTracker > (2.0*RTT)) && (cwind > 1))
-    //   cwind -=1;
+    else if ((delayTracker > (2.0*RTT)) && (cwind > 1)  && (ackRateObs < ackRateEst))
+      cwind -= 2;
   } else { // not so confident
     // if ((delayTracker <= (1.1*RTT)) && (ackRateObs > ackRateEst)) {
     //   fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
