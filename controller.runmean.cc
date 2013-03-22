@@ -3,6 +3,8 @@
 #include <queue>
 #include <cassert>
 #include <utility>
+#include <unistd.h>
+
 #include "controller.hh"
 #include "timestamp.hh"
 
