@@ -24,7 +24,7 @@ Controller::Controller( const bool debug )
     cwind(50),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
-    resolution(200),
+    resolution(100),
     rtt(40),
     rttsum(400),
     rttn(10),
@@ -135,7 +135,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     double mrtt=diffsum/((int)rtimes.size());
     //fprintf(stderr,"rttmean: %i\n",(int)mrtt);
     // if our RTT is low and stable with at least 2xRTT our last time
-    if(mrtt< (rtt/2+rtteps/2) && ((timestamp_ack_received-lastspike)>2*(rtt))){
+    if(mrtt< (rtt/2+rtteps/2) && ((timestamp_ack_received-lastspike)>(rtt))){
       cwind=bwest*(rtt+4*rtteps);
       lastspike=timestamp_ack_received;
       fprintf(stdout,"%i,%i,%i,%.4f,%.4f,TRUE,%.4f\n",
