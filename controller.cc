@@ -99,7 +99,6 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
                                /* when the ack was received (by sender) */
 {
   double rtt = (double)(timestamp_ack_received - send_timestamp_acked);
-  fprintf(stdout, "At time %lu, RTT: %.1f\n", timestamp_ack_received, rtt);
   update_rtt_stats(rtt);
 
   /* Update window based on RTT average */
@@ -151,7 +150,6 @@ void Controller::update_rtt_stats(const double rtt)
   rtt_sum_ = rtt_sum_ + rtt;
   acks_count_ = acks_count_ + 1;
   rtt_avg_ = rtt_sum_/acks_count_;
-  fprintf(stdout, "AVG %f \n", rtt_avg_);
 
   rtt_ratio_ = rtt/rtt_min_;
 }
@@ -178,10 +176,6 @@ void Controller::update_capacity_stats(const uint64_t timestamp) {
   capacity_derivative_ = (capacity_estimate_ - capacity_last) / params_.ack_interval_size;
   capacity_derivative_avg_ = params_.derivAVG * capacity_derivative_ +
     (1 - params_.AVG) * capacity_derivative_avg_;
-
-  fprintf( stderr, "At time %lu, capacity %.2f capacity_avg %.2f, queue %.2f, outstanding %lu \n",
-      timestamp - initial_timestamp_, capacity_estimate_, capacity_avg_,
-      queue_estimate_, last_packet_sent_ - last_ack_received_);
 }
 
 void Controller::update_window_size(const uint64_t timestamp) {
@@ -193,7 +187,6 @@ void Controller::update_window_size(const uint64_t timestamp) {
 
   capacity_next_ = capacity_avg_ +
     capacity_derivative_avg_ * (timestamp - processed_timestamp_) / 100;
-  fprintf( stdout, "%f %f \n", capacity_avg_, capacity_next_);
   queue_estimate_ = (rtt_last_ - rtt_min_) * capacity_avg_;
 
   if (capacity_next_ > 0) {
