@@ -198,9 +198,12 @@ double Controller::estimateParameters() {
   double ackRateEst = cwind/RTT;
   double ackRateObs = (ackTracker > 0.0) ? (1 / ackTracker) : ackRateEst;
   double cwindDL = ackRateObs * RTT;
-  if (delayTracker <= (2*RTT)) {
+  if (delayTracker <= (1.5*RTT)) {
     cwind += 1;
+  } else if (delayTracker > (2*RTT)) {
+
   }
+
   if (ackRateObs >= ackRateEst) {
     if (rho < 0.5) { // some queue?
       return cwind/1.5;
