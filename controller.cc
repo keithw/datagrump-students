@@ -106,7 +106,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   	window_float = window_float + (1.0/window);
   }
   else{
-  	window_float = window_float - (0.5/window);
+  	window_float = window_float - (2.0/window);
   }
   
   for (int n=0 ; n<(rsize-1) ; n++ ){
@@ -132,7 +132,7 @@ void Controller::timout_detected(void)
     fprintf( stderr, "Timeout Detected. \n" );
   }
   
-	//window_float = window_float/2;
+	window_float = window_float/2;
 }
 
 void Controller::debugging(int n)
