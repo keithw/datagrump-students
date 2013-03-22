@@ -213,7 +213,7 @@ double Controller::estimateParameters() {
       wt = 0.0;//9;
       cwind =  (wt*cwindDL + (1-wt)*cwind);
       if (cwind > lastcwind)
-        cwind += 1;
+        cwind += 2;
       //else
       //cwind += 1;
     }
