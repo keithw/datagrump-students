@@ -22,7 +22,7 @@ int lastspike = 0;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ),
-    cwind(10),
+    cwind(20),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
     resolution(80),
@@ -110,7 +110,10 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
                                /* when the acknowledged packet was received */
                                const uint64_t timestamp_ack_received )
 {
-  double rtteps=19;
+  if(sequence_number_acked < 10){
+    return;
+  }
+  double rtteps=20;
   //push new packet info onto queue
   stimes.push_front(send_timestamp_acked);
   rtimes.push_front(recv_timestamp_acked);
@@ -129,8 +132,8 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     rtimes.pop_back();
   }
   //account for truncation at start
-  int truncres = std::min(resolution,(double)(timestamp_ack_received-start_time-rtt));
-  int truncresLR = std::min(resolutionLR,(double)(timestamp_ack_received-start_time-rtt));
+  int truncres = resolution;
+  int truncresLR = resolutionLR;
   double bwestSR=((double)runmean.size())/truncres;
   double bwestLR=((double)runmeanLR.size())/truncresLR;
   double bwest=(bwestSR+bwestLR*4)/(1+4);
