@@ -307,7 +307,7 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
                                   const uint64_t timestamp_ack_received ){
   double delay = RTT;
   for (list< pair<uint64_t, uint64_t> >::iterator it = sendTimestamp.begin(); it != sendTimestamp.end(); ++it) {
-    if (it->first == sequence_number) {
+    if (it->first == sequence_number_acked) {
       delay = timestamp_ack_received - it->second;
       sendTimestamp.erase(it);
       break;
