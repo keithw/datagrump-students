@@ -131,7 +131,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   //fprintf(stderr, "size: %i\n",(int)runmean.size());
   double bwestSR=((double)runmean.size())/resolution;
   double bwestLR=((double)runmeanLR.size())/resolutionLR;
-  double bwest=(bwestSR+bwestLR*3)/(1+3);
+  double bwest=(bwestSR+bwestLR*2)/(1+2);
   if(rtimes.size()>0){
     std::list<int>::const_iterator rIt=rtimes.begin();
     std::list<int>::const_iterator sIt=stimes.begin();
@@ -145,7 +145,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     //fprintf(stderr,"rttmean: %i\n",(int)mrtt);
     // if our RTT is low and stable with at least 2xRTT our last time
     if(mrtt< (rtt/2+rtteps/4) && ((timestamp_ack_received-lastspike)>(rtt))){
-      cwind=bwest*(rtt+3*rtteps);
+      cwind=bwest*(rtt+2*rtteps);
       lastspike=timestamp_ack_received;
       fprintf(stdout,"%i,%i,%i,%.4f,%.4f,TRUE,%.4f\n",
 	      (int)(timestamp_ack_received-start_time),
