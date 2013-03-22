@@ -26,7 +26,7 @@ Controller::Controller( const bool debug )
     last_packet_sent_(0),
     last_ack_received_(0),
     capacity_estimate_(0),
-    capacity_avg_(0), // TODO: maybe set this to non-zero
+    capacity_avg_(0),
     capacity_derivative_(0),
     capacity_derivative_avg_(0),
     capacity_next_(0),
@@ -161,7 +161,6 @@ void Controller::update_rtt_stats(const double rtt)
   rtt_ratio_ = rtt/rtt_min_;
 }
 
-
 /* Update capacity estimates after ack received */
 void Controller::update_capacity_stats(const uint64_t timestamp) {
   uint64_t min_time = timestamp - params_.ack_interval_size;
@@ -170,7 +169,7 @@ void Controller::update_capacity_stats(const uint64_t timestamp) {
   }
 
   /* Capacity estimate heuristic */
-  // double capacity_last = capacity_estimate_;
+  double capacity_last = capacity_estimate_;
   capacity_estimate_ = ((double) acks_.size()) / params_.ack_interval_size;
 
   /* Weighted average of capacity */
@@ -181,17 +180,9 @@ void Controller::update_capacity_stats(const uint64_t timestamp) {
   }
 
   /* Derivatives */
-  // capacity_derivative_ = capacity_avg_ - capacity_avg_last;
-  // capacity_derivative_avg_ = params_.derivAVG * capacity_derivative_ +
-  //  (1 - params_.AVG) * capacity_derivative_avg_;
-
-  // capacity_derivative_ = capacity_estimate_ - capacity_last;
-  // capacity_derivative_avg_ = params_.derivAVG * capacity_derivative_ +
-  //   (1 - params_.AVG) * capacity_derivative_avg_;
-
-  /* Queue estimate */
-  queue_estimate_ = (rtt_last_ - rtt_min_) * capacity_estimate_;
-  // queue_estimate_ = max(0.0, last_packet_sent_ - last_ack_received_ - capacity_avg_ * rtt_min_);
+  capacity_derivative_ = (capacity_estimate_ - capacity_last) / params_.ack_interval_size;
+  capacity_derivative_avg_ = params_.derivAVG * capacity_derivative_ +
+    (1 - params_.AVG) * capacity_derivative_avg_;
 
   fprintf( stderr, "At time %lu, capacity %.2f capacity_avg %.2f, queue %.2f, outstanding %lu \n",
       timestamp - initial_timestamp_, capacity_estimate_, capacity_avg_,
@@ -205,10 +196,19 @@ void Controller::update_window_size(const uint64_t timestamp) {
     update_capacity_stats(processed_timestamp_);
   }
 
-  if (capacity_avg_ > 0) {
+  capacity_next_ = capacity_avg_ +
+    capacity_derivative_avg_ * (timestamp - processed_timestamp_) / 100;
+  fprintf( stdout, "%f %f \n", capacity_avg_, capacity_next_);
+  //capacity_next_ = capacity_avg_;
+
+  queue_estimate_ = (rtt_last_ - rtt_min_) * capacity_avg_;
+  // queue_estimate_ = max(0.0, last_packet_sent_ - last_ack_received_ - capacity_avg_ * rtt_min_);
+
+  if (capacity_next_ > 0) {
     /* We use twice the capacity average (2 * bddelay) to ensure a high throughput and
      * substract the capacity reserved for draining the queue in time drain_time_ = 100ms */
-    w_size_ = max(1.0, (2 * capacity_avg_ - queue_estimate_ / 100) * rtt_min_);
+    double rtt_max = 70;
+    w_size_ = max(1.0, capacity_next_ * rtt_max - queue_estimate_ / 100 * rtt_min_);
  } else {
     /* Black magic heuristic */
     w_size_ = max(w_size_ + log(pow((1/(rtt_ratio_/2)),10))*(params_.AI / max(w_size_, 1.0)),1.0);
