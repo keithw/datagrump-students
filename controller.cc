@@ -96,7 +96,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   dev = rtt - srtt;
   dev = dev>0?dev:0-dev;
   rttdev = (beta*dev) + ((1-beta)*rttdev);
-  timeout = srtt;// + (4*rttdev);
+  timeout = 0.5*srtt;// + (4*rttdev);
   
   unsigned int avg = 0;
   for (int n=0 ; n<rsize ; n++ ){
