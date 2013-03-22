@@ -12,7 +12,7 @@ using namespace std;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ), 
-    w_size_(50), 
+    w_size_(60), 
     rtt_last_(0),
     rtt_min_(-1),
     rtt_max_(0),
@@ -24,7 +24,10 @@ Controller::Controller( const bool debug )
     initial_timestamp_(0),
     last_packet_sent_(0),
     capacity_estimate_(0),
-    capacity_avg_(0), // TODO: set this to non-zero
+    capacity_avg_(0), // TODO: maybe set this to non-zero
+    capacity_derivative_(0),
+    capacity_derivative_avg_(0),
+    capacity_next_(0),
     queue_estimate_(0.0),
     acks_(),
     params_()
@@ -33,7 +36,8 @@ Controller::Controller( const bool debug )
   params_.AI = 1.0;
   params_.MD = 0.5;
   params_.AVG = 0.2;
-  params_.ack_interval_size = 40; // ms
+  params_.derivAVG = 0.7;
+  params_.ack_interval_size = 20; // ms
 
   LoadParams("controller_config.txt");
 }
@@ -92,6 +96,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
                                /* when the ack was received (by sender) */
 {
   double rtt = (double)(timestamp_ack_received - send_timestamp_acked);
+  fprintf(stdout, "At time %lu, RTT: %.1f\n", timestamp_ack_received, rtt);
   update_rtt_stats(rtt);
  
   /* Record ack and update estimates */
@@ -103,10 +108,11 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   // if (capacity_avg_ > 0 && timestamp_ack_received - initial_timestamp_ > 1300) {
   // ...
   
-  if (capacity_avg_ > 0) {
+  if (capacity_next_ > 0) {
     /* We use twice the capacity average (2 * bddelay) to ensure a high throughput and
      * substract the capacity reserved for draining the queue in time drain_time_ = 100ms */
-    w_size_ = max(1.0, (2 * capacity_avg_ - queue_estimate_ / 100) * rtt_min_);
+    double rtt_max_ = 60;
+    w_size_ = max(1.0, capacity_next_ * rtt_max_ - queue_estimate_);
   } else {
     /* Black magic heuristic */
     w_size_ = max(w_size_ + log(pow((1/(rtt_ratio_/2)),10))*(params_.AI / max(w_size_, 1.0)),1.0);
@@ -125,7 +131,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 unsigned int Controller::timeout_ms( void )
 {
   /* If the min_rtt should be around 40ms, and we are not dropping the w_size
-   * we shouldn't wait more than 60ms. */
+   * on timeout, we shouldn't wait more than 60ms. */
   return 60;
 }
 
@@ -165,19 +171,18 @@ void Controller::update_rtt_stats(const double rtt)
 /* Update capacity estimates after ack received */
 void Controller::update_capacity_stats(
     const uint64_t timestamp, const uint64_t current_ack) {
+  
   uint64_t min_time = timestamp - params_.ack_interval_size;
   while (acks_.size() > 0 && acks_.front().acked_ < min_time) {
     acks_.pop_front();
   }
 
   /* Capacity estimate heuristic */
+  double capacity_last = capacity_estimate_;
   capacity_estimate_ = ((double) acks_.size()) / params_.ack_interval_size;
   
-  // TODO: it might be worth trying the capacity_avg here, although we are
-  // estimating the queue at the current ack
-  queue_estimate_ = (rtt_last_ - rtt_min_) * capacity_estimate_;
-
   /* Weighted average */
+  // double capacity_avg_last = capacity_avg_;
   if (capacity_avg_ == 0) {
     capacity_avg_ = capacity_estimate_;
   } else {
@@ -185,7 +190,25 @@ void Controller::update_capacity_stats(
     capacity_avg_ = params_.AVG * capacity_estimate_ + (1 - params_.AVG) * capacity_avg_;
   }
 
-  fprintf( stderr, "At time %lu, capacity %.2f capacity_avg %.2f, queue %.2f, outstanding %lu \n",
-	   timestamp - initial_timestamp_, capacity_estimate_, capacity_avg_,
-     queue_estimate_, current_ack - last_packet_sent_);
+  /* Derivatives */
+  // capacity_derivative_ = capacity_avg_ - capacity_avg_last;
+  // capacity_derivative_avg_ = params_.derivAVG * capacity_derivative_ +
+  //  (1 - params_.AVG) * capacity_derivative_avg_; 
+  
+  capacity_derivative_ = capacity_estimate_ - capacity_last;
+  capacity_derivative_avg_ = params_.derivAVG * capacity_derivative_ + 
+    (1 - params_.AVG) * capacity_derivative_avg_; 
+
+  // TODO: but next time we should compare the capacity_next with
+  // the true capacity and see if we made the right decision ...
+  capacity_next_ = capacity_avg_ + 2 * capacity_derivative_avg_;
+
+  // TODO: it might be worth trying the capacity_avg here, although we are
+  // estimating the queue at the current ack
+  double queue_estimate_aux = (rtt_last_ - rtt_min_) * capacity_estimate_;
+  queue_estimate_ = max(0.0, last_packet_sent_ - current_ack - capacity_avg_ * rtt_min_);
+
+  fprintf( stderr, "At time %lu, capacity %.2f capacity_avg %.2f, queue %.2f, outstanding %lu, queue %.2f \n",
+      timestamp - initial_timestamp_, capacity_estimate_, capacity_avg_,
+      queue_estimate_, last_packet_sent_ - current_ack, queue_estimate_aux);
 }

@@ -13,6 +13,7 @@ public:
     double AI;
     double MD;
     double AVG;
+    double derivAVG;
     double ack_interval_size;
   };
 
@@ -44,6 +45,9 @@ private:
   uint64_t last_packet_sent_;
   double capacity_estimate_; /* recent_acks / time_frame */
   double capacity_avg_;
+  double capacity_derivative_;
+  double capacity_derivative_avg_;
+  double capacity_next_;
   double queue_estimate_;
 
   std::deque<Ack> acks_; /* Keeps record of all the acks received recently */

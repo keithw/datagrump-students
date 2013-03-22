@@ -46,40 +46,39 @@ int main( int argc, char *argv[] )
 
       /* fill up window */
       while ( sequence_number - next_ack_expected < window_size ) {
-	Packet x( destination, sequence_number++ );
-	sock.send( x );
-	controller.packet_was_sent( x.sequence_number(),
-				    x.send_timestamp() );
+	      Packet x( destination, sequence_number++ );
+	      sock.send( x );
+	      controller.packet_was_sent( x.sequence_number(),
+            x.send_timestamp() );
       }
 
       /* Wait for acknowledgement or timeout */
       struct pollfd fd = { sock.fd(), POLLIN, 0 };
       int packet_received = poll( &fd, 1, controller.timeout_ms() );
       if ( packet_received < 0 ) { /* error */
-	perror( "poll" );
-	throw string( "poll returned error." );
+	      perror( "poll" );
+	      throw string( "poll returned error." );
       } else if ( packet_received == 0 ) { /* timeout */
-	/* send a packet */
-	Packet x( destination, sequence_number++ );
-	sock.send( x );
-	controller.packet_was_sent( x.sequence_number(),
-				    x.send_timestamp() );
-	/*tell controller*/
-	controller.packet_timed_out();
-
+	      /* send a packet */
+	      // Packet x( destination, sequence_number++ );
+	      // sock.send( x );
+	      // controller.packet_was_sent( x.sequence_number(),
+				//     x.send_timestamp() );
+	      /* tell the controller */
+	      controller.packet_timed_out();
       } else {
-	/* we got an acknowledgment */
-	Packet ack = sock.recv();
+	      /* we got an acknowledgment */
+	      Packet ack = sock.recv();
 
-	/* update our counter */
-	next_ack_expected = max( next_ack_expected,
-				 ack.ack_sequence_number() + 1 );
+	      /* update our counter */
+	      next_ack_expected = max( next_ack_expected,
+				    ack.ack_sequence_number() + 1 );
 
-	/* tell the controller */
-	controller.ack_received( ack.ack_sequence_number(),
-				 ack.ack_send_timestamp(),
-				 ack.ack_recv_timestamp(),
-				 ack.recv_timestamp() );
+	      /* tell the controller */
+	      controller.ack_received( ack.ack_sequence_number(),
+				    ack.ack_send_timestamp(),
+				    ack.ack_recv_timestamp(),
+				    ack.recv_timestamp() );
       }
     }
   } catch ( const string & exception ) {
