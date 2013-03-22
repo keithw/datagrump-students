@@ -38,7 +38,8 @@ int main( int argc, char *argv[] )
 
     /* Initialize flow controller */
     Controller controller( debug );
-
+    //THIS IS IMPORTANT, DO NOT REMOVE, removes 1s delay
+    usleep(200*100);
     /* Loop */
     while ( 1 ) {
       /* Ask controller: what is the window size? */
