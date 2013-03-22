@@ -33,7 +33,8 @@ Controller::Controller( const bool debug )
     networkDown(false),
     recovery(0),
     lastPB(0),
-    lastCW(0),
+    lastcint(1),
+    lastcwind(1),
     start_time(timestamp()),
     rho(0.25)
 {
@@ -113,21 +114,34 @@ double Controller::estimateParameters() {
     // if we are getting acks faster => network has recoved and queue is
     // being flushed and we are getting fast responses
     double wt = 0.5;
-    //if (rho > 0.25) wt = 0.9;
+    if (rho > 0.25) wt = 0.8;
     fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
     cwind = (wt*cwindDL + (1-wt)*cwind);
+
+    // look at slopes : If we are increasing, try to increase faster
+    if (cwind > lastcwind)
+      cwind = (cwind - lastcwind)*2;
   } else {
-    // // if we are getting acks slower => network is putting stuff in a queue somewhere
-    // // This means we need to slow down
-    // if ((lastCW > 1) && (lastCW >= (1.7*cwind))) {
+    // if we are getting acks slower => network is putting stuff in a queue somewhere
+    // This means we need to slow down.
+
+    // Need to check if the rate is dropping because we dropped cwind. If cwind was
+    // increasing, then we really need to drop the window
+    if (rho > 0.25) { /// we have recently observed a drop in rate
+      double wt = 0.5;
+      cwind = (wt*cwindDL*0.5 + (1-wt)*cwind);
+    } else {// we have a time - lagged estimate
+    //   if (cwind >)
+    // }
+    // if ((lastcint > 1) && (lastcint >= (1.7*cwind))) {
     //   // we owe a debt we may not be able to pay
-    //   double delta = lastCW - cwind;
+    //   double delta = lastcint - cwind;
     //   fprintf(fsend, "%lu: overflow by %.2f : %.2f -> ", tStamp,  delta, cwind);
     //   if (delta < 2*cwind) cwind -= delta/2;
     //   else cwind /= 2;
     //   fprintf(stderr, "%.2f \n", cwind);
-    // } else if(lastPB <= lastCW) {
-    //   lastPB = lastCW;
+    // } else if(lastPB <= lastcint) {
+    //   lastPB = lastcint;
     //   //cwind += 1;
     // }
   }
@@ -143,40 +157,43 @@ int Controller::chompWindow(unsigned int cint, double cwindDL) {
   // if we have a zero congestion window, push it out of this regime
   // if we are just starting up
   if (cint < 1)
-    if ((lastCW == 0) || (ackTracker == 0.0))
+    if ((lastcint == 0) || (ackTracker == 0.0))
       cint = 1;
   //if (rho > 0.25) cint += 1;
-  // if ((lastCW >= cint) && (lastCW <= lastPB) && (lastCW <= 1.5*(cint)))
-  //   cint = lastCW+1;
+  // if ((lastcint >= cint) && (lastcint <= lastPB) && (lastcint <= 1.5*(cint)))
+  //   cint = lastcint+1;
 
   // if we haven't seen the last ack in a while, stop sending cause
   // things are queued up!!
   // TODO: change 75 to something related to ~ 2*rtt!!. Try 1.5 or something
-  if ((lastAck > 0) && ((tStamp - lastAck) > (rttest))) {
-    fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
-    cint = 0;
-    networkDown = true;
-  }
-  if ((lastAck > 0) && ((tStamp - lastAck) > (0.5*rttest))) {
-    //fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
-    cint = 1;//cint/2;
-  }
-  else if ((lastAck > 0)  && (cint == lastCW)) {
-    cint += 1; // don't ever stay in a state without exploring up
+  if ((lastAck > 0) && (cint > 0)) {
+    if ((lastAck > 0) && (cint > 0) && ((tStamp - lastAck) > (rttest))) {
+      fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
+      cint = 0;
+      networkDown = true;
+    }
+    if ((lastAck > 0) && ((tStamp - lastAck) > (0.5*rttest))) {
+      //fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
+      cint = 1;//cint/2;
+    }
+    else if ((lastAck > 0)  && (cint == lastcint)) {
+      cint += 1; // don't ever stay in a state without exploring up
+    }
   }
   // // make sure %change in cint isn't too spiky : causes delays
-  // if ((lastCW > 0) && (cint > (int)lastCW))
-  //   if ((cint - lastCW)/float(lastCW) > 2) // change by more than 200%
-  //     cint = 2*lastCW; // can't be anything less than 2 since we are dealing with
+  // if ((lastcint > 0) && (cint > (int)lastcint))
+  //   if ((cint - lastcint)/float(lastcint) > 2) // change by more than 200%
+  //     cint = 2*lastcint; // can't be anything less than 2 since we are dealing with
   //                      // integers. May give issues with small numbers
 
   if ( debug_ ) {
     fprintf( fsend, "@%lu, %d, %.4f, %.4f, %.4f, %u, %.2f, %.1f, %lu\n",
-             (tStamp - start_time), cint, cwindDL, cwind, ackTracker, lastCW, ackLastDelta, rttest, (lastAck > 0) ? (tStamp - lastAck) : 0);
+             (tStamp - start_time), cint, cwindDL, cwind, ackTracker, lastcint, ackLastDelta, rttest, (lastAck > 0) ? (tStamp - lastAck) : 0);
   }
   if (lastAck == 0) cint = 5;
 
-  lastCW = cint;
+  lastcwind = cwind;
+  lastcint = cint;
   return cint;
 }
 

@@ -52,7 +52,8 @@ public:
   bool networkDown;
   unsigned int recovery ;
   unsigned int lastPB ;
-  unsigned int lastCW ;
+  unsigned int lastcint ;
+  unsigned int lastcwind;
   uint64_t start_time ;
   double rho;
 
