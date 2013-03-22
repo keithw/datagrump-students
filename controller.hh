@@ -2,8 +2,16 @@
 #define CONTROLLER_HH
 
 #include <stdint.h>
+#include <deque>
 
 /* Flow controller interface */
+
+struct entry {
+  double throughput;
+  double time;
+
+  entry(double throughput, double time) : throughput(throughput), time(time) {}
+};
 
 class Controller
 {
@@ -11,10 +19,11 @@ private:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
-  uint64_t first_recv_time;
   uint64_t cur_pkt_count;
   uint64_t last_tick_time;
   double throughput;
+  std::deque<entry> history;
+  double slope, intercept;
 
   void update_estimate(uint64_t cur_time, uint64_t recent_delay);
 

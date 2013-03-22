@@ -2,22 +2,25 @@
 
 #include "controller.hh"
 #include "timestamp.hh"
+#include <algorithm>
 
 using namespace Network;
 
 #define TICK_LEN (25)
 #define TIMEOUT_MS (100)
-#define EWMA_GAIN (.2)
+#define EWMA_GAIN (0.2)
 #define TAU (60)
-#define STARTING_WINDOW (0.85 * TAU)
+#define HISTORY_SIZE (3)
 
 /* Default constructor */
 Controller::Controller(const bool debug)
   : debug_(debug),
-    first_recv_time(0),
     cur_pkt_count(0),
     last_tick_time(0),
-    throughput(-1)
+    throughput(0.0),
+    history(),
+    slope(0.0),
+    intercept(0.0)
 {
   fprintf(stderr, "Using forecast model!\n");
 }
@@ -25,28 +28,30 @@ Controller::Controller(const bool debug)
 void Controller::update_estimate(uint64_t cur_time, uint64_t recent_delay) {
   // If we've stepped into a new tick.
   if (cur_time - last_tick_time >= TICK_LEN) {
-    uint64_t threshold_time = (cur_time - (cur_time % TICK_LEN)) - TICK_LEN;
-    if ((first_recv_time != 0) &&
-        (threshold_time >= first_recv_time)) {
-      // Update throughput
-      double recent_throughput = 1.0*cur_pkt_count / TICK_LEN;
-      if (recent_delay != 0) {
-        if (recent_throughput < 1.0 / recent_delay) {
-          recent_throughput = 1.0 / recent_delay;
-        }
-      }
-      // Just use recent_throughput if not initialized.
-      if (throughput < 0) {
-        throughput = recent_throughput;
-      } else {
-        throughput = (1-EWMA_GAIN)*throughput + EWMA_GAIN*recent_throughput;
-        if (recent_delay != 0) {
-          if (throughput < 1.0 / recent_delay) {
-            throughput = 1.0 / recent_delay;
-          }
-        }
+    double lower_bound = (recent_delay > 0) ? (1.0 / recent_delay) : 0.0;
+
+    // Update throughput
+    double recent_throughput = std::max(
+      1.0 * cur_pkt_count / TICK_LEN,
+      lower_bound);
+
+    history.push_front(entry(recent_throughput, cur_time));
+    while (history.size() > HISTORY_SIZE) {
+      history.pop_back();
+    }
+
+    {
+      if (history.size() == HISTORY_SIZE) {
+        double a = history[0].time, b = history[1].time, c = history[2].time,
+               d = history[0].throughput, e = history[1].throughput, f = history[2].throughput;
+        slope = (2*a*d - a*e - b*d - a*f + 2*b*e - c*d - b*f - c*e + 2*c*f)/(2*(a*a - a*b - a*c + b*b - b*c + c*c));
+        intercept = (a*a*e + b*b*d + a*a*f + c*c*d + b*b*f + c*c*e - a*b*d - a*b*e - a*c*d - a*c*f - b*c*e - b*c*f)/(2*(a*a - a*b - a*c + b*b - b*c + c*c));
       }
     }
+    
+    throughput = std::max(
+      (1 - EWMA_GAIN) * throughput + EWMA_GAIN * recent_throughput,
+      lower_bound);
 
     cur_pkt_count = 0;
     // Round down to nearest TICK_LEN.
@@ -59,16 +64,16 @@ unsigned int Controller::window_size(void)
 {
   unsigned int the_window_size;
 
-  if (throughput < 0) {
-    the_window_size = STARTING_WINDOW;
-  } else {
-    // We want W = TP * DELAY
-    the_window_size = (unsigned int)(throughput * TAU);
-  }
+  // We want W = TP * DELAY
+  double point = slope * timestamp() + intercept;
+  double percent_difference = (point > 0.0) ? ((point - throughput) / point) : 0.0;
+  percent_difference = std::min(std::max(percent_difference, -0.5), 0.5);
+
+  the_window_size = (unsigned int) (throughput * TAU * (1.0 + 0.1 * percent_difference));
 
   if (debug_) {
-    fprintf(stderr, "At time %lu, return window_size = %d.\n",
-	     timestamp(), the_window_size);
+    fprintf(stderr, "At time %lu, return window_size = %d. %f\n",
+	     timestamp(), the_window_size, 1.0 + 0.1 * percent_difference);
   }
 
   return the_window_size;
@@ -110,9 +115,6 @@ void Controller::ack_received(const uint64_t sequence_number_acked,
       timestamp_ack_received - send_timestamp_acked);
   }
 
-  if (first_recv_time == 0) {
-    first_recv_time = timestamp_ack_received;
-  }
   update_estimate(timestamp_ack_received, recv_timestamp_acked - send_timestamp_acked);
   // It's important that we do this after update_estimate!
   cur_pkt_count++;
