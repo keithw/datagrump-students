@@ -65,11 +65,11 @@ int main( int argc, char *argv[] )
           controller.markBeginning(x.sequence_number(), x.sequence_number() + nsend - 1);
         }
 	ns ++;
-	
       }
-
-      /* Wait for acknowledgement or timeout */
       struct pollfd fd = { sock.fd(), POLLIN, 0 };
+      int ptest = poll( &fd, 1, 0 );
+      fprintf(stderr,"Poll test %d\n",ptest);
+      /* Wait for acknowledgement or timeout */
       int packet_received = poll( &fd, 1, controller.timeout_ms() );
       if ( packet_received < 0 ) { /* error */
         perror( "poll" );
