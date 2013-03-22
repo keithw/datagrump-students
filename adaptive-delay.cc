@@ -57,7 +57,7 @@ void AdaptDelayController::ack_received( const uint64_t sequence_number_acked,
   */
   bool coarse_delay = true;
   if(sim_queue.front().was_queued && !recv_queue.empty()){
-    tx_delay = 0.2*tx_delay + 0.8*(recv_timestamp_acked - recv_queue.back().recv_timestamp);
+    tx_delay = 0.3*tx_delay + 0.7*(recv_timestamp_acked - recv_queue.back().recv_timestamp);
   } else {
     tx_delay = recv_timestamp_acked - PROPDELAY - send_timestamp_acked;
   }
@@ -83,6 +83,7 @@ void AdaptDelayController::ack_received( const uint64_t sequence_number_acked,
 
   /* Propogate tx_delay informtaion through the sim_queue */
   double last_recv_timestamp = recv_timestamp_acked;
+  double delay_estimate;
   if(!sim_queue.empty()){
     std::deque<PacketData>::iterator currPacketP = sim_queue.begin();
     while(currPacketP != sim_queue.end()){
@@ -99,22 +100,17 @@ void AdaptDelayController::ack_received( const uint64_t sequence_number_acked,
       last_recv_timestamp = currPacketP->recv_timestamp;
       ++currPacketP;
     }
-  }
 
-  /* Now calculate how much delay will the newest packet in the queue see */
-  double delay_estimate;
-  if( last_recv_timestamp > (timestamp_ack_received + PROPDELAY)){
-    delay_estimate = last_recv_timestamp - timestamp_ack_received + tx_delay;
+    /* Now calculate how much delay will the newest packet in the queue see */
+    delay_estimate = tx_delay + std::max((sim_queue.back().recv_timestamp - timestamp_ack), PROPDELAY);
   } else {
-    delay_estimate = tx_delay + PROPDELAY;
+      delay_estimate = tx_delay + PROPDELAY;
   }
-  
   double delay_slack = PROPDELAY + tx_delay + delay_threshold - delay_estimate;
-  double delay_next_recvd = 0;
-  if(cwnd > 1){
-    delay_next_recvd = sim_queue.front().recv_timestamp - recv_timestamp_acked;
-  } else {
-    delay_next_recvd = timestamp_ack_received + PROPDELAY + tx_delay - recv_timestamp_acked;
+ 
+  double delay_next_ack = delaY_threshold+1;
+  if(!sim_queue.empty()){
+    delay_next_ack = sim_queue.front().recv_timestamp - recv_timestamp_acked;
   }
   int delta_cwnd = (delay_slack>0) ? (int) (std::min(delay_slack, delay_next_recvd)/tx_delay) : -1;
   cwnd += delta_cwnd;
