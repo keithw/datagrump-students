@@ -128,9 +128,11 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     stimes.pop_back();
     rtimes.pop_back();
   }
-  //fprintf(stderr, "size: %i\n",(int)runmean.size());
-  double bwestSR=((double)runmean.size())/resolution;
-  double bwestLR=((double)runmeanLR.size())/resolutionLR;
+  //account for truncation at start
+  int truncres = min(resolution,timestamp_ack_received-start_time);
+  int truncresLR = min(resolutionLR,timestamp_ack_received-start_time);
+  double bwestSR=((double)runmean.size())/truncres;
+  double bwestLR=((double)runmeanLR.size())/truncresLR;
   double bwest=(bwestSR+bwestLR*4)/(1+4);
   if(rtimes.size()>0){
     std::list<int>::const_iterator rIt=rtimes.begin();
