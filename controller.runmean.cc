@@ -21,10 +21,10 @@ int lastspike = 0;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ),
-    cwind(50),
+    cwind(5),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
-    resolution(100),
+    resolution(50),
     rtt(40),
     rttsum(400),
     rttn(10),
