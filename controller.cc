@@ -6,9 +6,9 @@
 
 using namespace Network;
 
-#define TICK_LEN (25)
+#define TICK_LEN (30)
 #define EWMA_GAIN (0.2)
-#define SAFE_DELAY (60)
+#define SAFE_DELAY (70)
 #define TIMEOUT_MS (100)
 
 /* Default constructor */
@@ -90,7 +90,8 @@ void Controller::ack_received(const uint64_t sequence_number_acked,
       timestamp_ack_received - send_timestamp_acked);
   }
 
-  update_estimate(timestamp_ack_received, recv_timestamp_acked - send_timestamp_acked);
+  update_estimate(timestamp_ack_received,
+                  recv_timestamp_acked - send_timestamp_acked);
 
   // It's important that we do this after update_estimate!
   cur_pkt_count++;
