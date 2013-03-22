@@ -207,7 +207,7 @@ double Controller::estimateParameters() {
       if (cwind > lastcwind)
         cwind += 2;
     }
-    else if ((delayTracker > (1.5*RTT)) && (delayTracker < (2*RTT)) && (cwind > 1))
+    else if ((delayTracker > (1.5*RTT)) && (delayTracker < (2*RTT)) && (cwind > 1) && (ackRateObs < ackRateEst))
       cwind -= 1;
     // else if ((delayTracker > (2.0*RTT)) && (cwind > 1))
     //   cwind -=1;
