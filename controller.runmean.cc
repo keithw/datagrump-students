@@ -21,10 +21,10 @@ int lastspike = 0;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ),
-    cwind(10),
+    cwind(50),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
-    resolution(100),
+    resolution(200),
     rtt(40),
     rttsum(400),
     rttn(10),
@@ -257,7 +257,7 @@ int Controller::chompWindow(int cint, double cwindDL) {
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 100; /* timeout of one second */
+  return 10000000; /* timeout of one second */
 }
 
 
