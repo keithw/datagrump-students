@@ -207,8 +207,8 @@ double Controller::estimateParameters() {
       if (cwind > lastcwind)
         cwind += 2;
     }
-    // else if ((delayTracker > (1.5*RTT)) && (delayTracker < (2*RTT)) && (cwind > 1))
-    //   cwind -= 1;
+    else if ((delayTracker > (1.5*RTT)) && (delayTracker < (2*RTT)) && (cwind > 1))
+      cwind -= 1;
     // else if ((delayTracker > (2.0*RTT)) && (cwind > 1))
     //   cwind -=1;
   } else { // not so confident
@@ -269,7 +269,7 @@ int Controller::chompWindow(unsigned int cint, double cwindDL) {
     fprintf( fsend, "@%lu, %d, %.4f, %.4f, %.4f, %u, %.2f, %.1f, %lu\n",
              (tStamp - start_time), cint, cwindDL, cwind, ackTracker, lastcint, ackLastDelta, RTT, (lastAck > 0) ? (tStamp - lastAck) : 0);
   }
-  if (lastAck == 0) cint = 5;
+  if (lastAck == 0) cint = 50;
 
   lastcwind = cwind;
   lastcint = cint;
