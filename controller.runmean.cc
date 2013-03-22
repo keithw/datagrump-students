@@ -193,7 +193,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
 
 
 double Controller::estimateParameters() {
-  //uint64_t tStamp = timestamp();
+  uint64_t tStamp = timestamp();
   //downlink response rate:
   double ackRateEst = cwind/RTT;
   double ackRateObs = (ackTracker > 0.0) ? (1 / ackTracker) : ackRateEst;
