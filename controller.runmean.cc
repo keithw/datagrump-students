@@ -205,7 +205,7 @@ double Controller::estimateParameters() {
 
     // look at slopes : If we are increasing, try to increase faster
     if (cwind > lastcwind)
-      cwind += (cwind - lastcwind)*1.5;
+      cwind += 1; // (cwind - lastcwind)*2;
   } else {
     if (rho < 0.5) cwind += 1; // (cwind - lastcwind)*2;
     else if (cwind >= 1) cwind -= 1;
