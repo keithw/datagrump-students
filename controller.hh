@@ -48,6 +48,7 @@ public:
   double rttsum;
   double rttn;
   double ackTracker ;
+  double delayTracker;
   double ackLastDelta ;
   uint64_t lastAck ;
   bool networkDown;

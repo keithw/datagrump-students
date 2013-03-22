@@ -13,7 +13,9 @@ std::queue<int>  runmeanLR;//long-range queue
 std::list<int>  stimes;
 std::list<int>  rtimes;
 std::list< std::pair<uint64_t, uint64_t> > burstPackets;
-#define rttest 40.0
+std::list< std::pair<uint64_t, uint64_t> > sendTimestamp;
+
+#define RTT 40.0
 FILE *fsend = stderr;
 FILE *fget = stderr;
 int lastspike = 0;
@@ -31,6 +33,7 @@ Controller::Controller( const bool debug )
     rttsum(400),
     rttn(10),
     ackTracker(0.0),
+    delayTracker(RTT),
     ackLastDelta(0.0),
     lastAck(0),
     networkDown(false),
@@ -74,6 +77,7 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
     fprintf( stderr, "At time %lu, sent packet %lu.\n",
              send_timestamp, sequence_number );
   }
+  sendTimestamp.push_back(std::pair<uint64_t, uint64_t>(sequence_number, send_timestamp));
 }
 
 /* An ack was received */
@@ -189,9 +193,12 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
 double Controller::estimateParameters() {
   uint64_t tStamp = timestamp();
   //downlink response rate:
-  double ackRateEst = cwind/rttest;
+  double ackRateEst = cwind/RTT;
   double ackRateObs = (ackTracker > 0.0) ? (1 / ackTracker) : ackRateEst;
-  double cwindDL = ackRateObs * rttest;
+  double cwindDL = ackRateObs * RTT;
+  if (delayTracker <= (2*RTT)) {
+    cwind += 1;
+  }
   if (ackRateObs >= ackRateEst) {
     if (rho < 0.5) { // some queue?
       return cwind/1.5;
@@ -254,12 +261,12 @@ int Controller::chompWindow(unsigned int cint, double cwindDL) {
   // things are queued up!!
   // TODO: change 75 to something related to ~ 2*rtt!!. Try 1.5 or something
   if ((lastAck > 0) && (cint > 0)) {
-    if ((lastAck > 0) && (cint > 0) && ((tStamp - lastAck) > (rttest))) {
+    if ((lastAck > 0) && (cint > 0) && ((tStamp - lastAck) > (RTT))) {
       fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
       cint = 0;
       networkDown = true;
     }
-    if ((lastAck > 0) && ((tStamp - lastAck) > (0.5*rttest))) {
+    if ((lastAck > 0) && ((tStamp - lastAck) > (0.5*RTT))) {
       //fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
       cint = 1;//cint/2;
     }
@@ -275,7 +282,7 @@ int Controller::chompWindow(unsigned int cint, double cwindDL) {
 
   if ( debug_ ) {
     fprintf( fsend, "@%lu, %d, %.4f, %.4f, %.4f, %u, %.2f, %.1f, %lu\n",
-             (tStamp - start_time), cint, cwindDL, cwind, ackTracker, lastcint, ackLastDelta, rttest, (lastAck > 0) ? (tStamp - lastAck) : 0);
+             (tStamp - start_time), cint, cwindDL, cwind, ackTracker, lastcint, ackLastDelta, RTT, (lastAck > 0) ? (tStamp - lastAck) : 0);
   }
   if (lastAck == 0) cint = 5;
 
@@ -296,6 +303,14 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
                                   const uint64_t send_timestamp_acked,
                                   const uint64_t recv_timestamp_acked,
                                   const uint64_t timestamp_ack_received ){
+  double delay = RTT;
+  for (std::list< pair<uint64_t, uint64_t> >::iterator it = sendTimestamp.begin(); it != sendTimestamp.end(); ++it) {
+    if (it->first == sequence_number) {
+      delay = timestamp_ack_received - it->second;
+      sendTimestamp.erase(it);
+      break;
+    }
+  }
   rho = 0.25;
   while (burstPackets.size() > 0) {
     if (sequence_number_acked <= burstPackets.front().second) break;
@@ -309,6 +324,8 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
   }
   assert(send_timestamp_acked <= timestamp_ack_received);
   assert(recv_timestamp_acked <= timestamp_ack_received);
+
+  delayTracker = (1-rho)*delayTracker + rho * delay;
 
   if (lastAck == 0) {
     //lastAck = recv_timestamp_acked;
