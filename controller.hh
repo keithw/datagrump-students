@@ -22,10 +22,11 @@ private:
 
   int64_t sasa;
   uint64_t previousSA;
+  uint64_t minRTT;
   // Map packet sequence numbers to sent timestamp
   std::unordered_map<uint64_t, uint64_t> sendTimestamps;
 
-  const uint64_t RTT_THRESHOLD_MS = 115;
+  const uint64_t RTT_THRESHOLD_MS = 100;
   const uint64_t CWND_MIN = 1;
 
   bool slowStart;
@@ -40,6 +41,8 @@ public:
 
   /* Get current window size, in packets */
   unsigned int window_size( void );
+
+  void set_window_size(uint64_t new_size);
 
   /* A packet was sent */
   void packet_was_sent( const uint64_t sequence_number,

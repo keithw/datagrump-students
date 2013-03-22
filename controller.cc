@@ -8,8 +8,8 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), cwnd(300), count(0), sa(0), sv(0), rto(500), sasa(0),
-    previousSA(0), sendTimestamps(), slowStart(true)
+  : debug_( debug ), cwnd(75), count(0), sa(0), sv(0), rto(500), sasa(0),
+    previousSA(0), minRTT(5000), sendTimestamps(), slowStart(true)
 {
 }
 
@@ -25,6 +25,10 @@ unsigned int Controller::window_size( void )
   }
 
   return the_window_size;
+}
+
+void Controller::set_window_size(uint64_t new_size) {
+  cwnd = new_size;
 }
 
 /* A packet was sent */
@@ -54,6 +58,9 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 {
   uint64_t sendTimestamp = sendTimestamps[sequence_number_acked];
   uint64_t rtt = timestamp_ack_received - sendTimestamp;
+  if (rtt < minRTT) {
+    minRTT = rtt;
+  }
 
   // Update estimators
   int64_t m = rtt;
@@ -100,10 +107,19 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   //  }
   //}
 
-  if (rtt > RTT_THRESHOLD_MS) {
-    cwnd = std::max(cwnd / 2, CWND_MIN);
-  }  else {
-    count++;
+  //uint64_t rttAvg = sa >> 3;
+//  uint64_t avgChange = sasa >> 2;
+  //if (rtt > RTT_THRESHOLD_MS) {
+  if (rtt > RTT_THRESHOLD_MS && (sasa >> 2) > 10) {
+    cwnd = std::max(cwnd - 1, CWND_MIN);
+  } else {
+    count += 1;
+    if (rtt < (minRTT + 20)) {
+      count += 1;
+    }
+    //if ((sasa >> 2) < 0 && ((sa >> 3) < RTT_THRESHOLD_MS)) {
+    //  count++;
+    //}
     if (count >= cwnd) {
       ++cwnd;
       count = 0;
@@ -126,8 +142,8 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
 	     send_timestamp_acked, recv_timestamp_acked );
-    fprintf( stderr, "rtt: %lu and scaled rtt average: %lu sasa: %ld\n",
-             rtt, (sa >> 3), (sasa >> 3));
+    fprintf( stderr, "rtt: %lu and scaled rtt average: %lu sasa: %ld minRTT: %lu\n",
+             rtt, (sa >> 3), (sasa >> 2), minRTT);
   }
 }
 
