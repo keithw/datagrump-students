@@ -198,53 +198,33 @@ double Controller::estimateParameters() {
   double ackRateEst = cwind/RTT;
   double ackRateObs = (ackTracker > 0.0) ? (1 / ackTracker) : ackRateEst;
   double cwindDL = ackRateObs * RTT;
-  if (delayTracker <= (1.5*RTT)) {
-    cwind += 1;
-  } else if (delayTracker > (2*RTT)) {
-    cwind -= 1;
-  }
+  double wt = 0.5;
+  // if (rho > 0.5) { // we have confident, recent estimates
+  //   if ((delayTracker <= (1.1*RTT)) && (ackRateObs > ackRateEst)) {
+  //     fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
+  //     wt = 0.9;
+  //     cwind =  (wt*cwindDL + (1-wt)*cwind);
+  //     if (cwind > lastcwind)
+  //       cwind += 1; // (cwind - lastcwind)*2;
+  //   }
+  //   else if ((delayTracker > (1.5*RTT)) && (delayTracker < (2*RTT)) && (cwind > 1))
+  //     cwind -= 1;
+  //   else if ((delayTracker > (2.0*RTT)) && (cwind > 1))
+  //     cwind -=1;
+  // } else { // not so confident
+  //   if ((delayTracker <= (1.1*RTT)) && (ackRateObs > ackRateEst)) {
+  //     fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
+  //     wt = 0.5;
+  //     cwind =  (wt*cwindDL + (1-wt)*cwind);
+  //     if (cwind > lastcwind)
+  //       cwind += 1; // (cwind - lastcwind)*2;
+  //   }
+  //   else if ((delayTracker > (1.5*RTT)) && (delayTracker < (2*RTT)) && (cwind > 1))
+  //     cwind -= 1;
+  //   else if ((delayTracker > (2.0*RTT)) && (cwind > 1))
+  //     cwind -=1;
 
-  if (ackRateObs >= ackRateEst) {
-    if (rho < 0.5) { // some queue?
-      return cwind/1.5;
-    }
-
-    // if we are getting acks faster => network has recoved and queue is
-    // being flushed and we are getting fast responses
-    double wt = 0.5;
-    fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
-    cwind = (wt*cwindDL + (1-wt)*cwind);
-
-    // look at slopes : If we are increasing, try to increase faster
-    if (cwind > lastcwind)
-      cwind += (cwind - lastcwind)*2;
-  } else {
-    if (rho < 0.5) cwind += 1; // (cwind - lastcwind)*2;
-    else if (cwind >= 1) cwind -= 1;
-    // // if we are getting acks slower => network is putting stuff in a queue somewhere
-    // // This means we need to slow down.
-
-    // // Need to check if the rate is dropping because we dropped cwind. If cwind was
-    // // increasing, then we really need to drop the window
-    // if (rho > 0.25) { /// we have recently observed a drop in rate
-    //   double wt = 0.5;
-    //   cwind = (wt*cwindDL*0.5 + (1-wt)*cwind);
-    // } else {// we have a time - lagged estimate
-    // //   if (cwind >)
-    // // }
-    // // if ((lastcint > 1) && (lastcint >= (1.7*cwind))) {
-    // //   // we owe a debt we may not be able to pay
-    // //   double delta = lastcint - cwind;
-    // //   fprintf(fsend, "%lu: overflow by %.2f : %.2f -> ", tStamp,  delta, cwind);
-    // //   if (delta < 2*cwind) cwind -= delta/2;
-    // //   else cwind /= 2;
-    // //   fprintf(stderr, "%.2f \n", cwind);
-    // // } else if(lastPB <= lastcint) {
-    // //   lastPB = lastcint;
-    // //   //cwind += 1;
-    // }
-  }
-
+  // }
   return cwindDL;
 }
 
