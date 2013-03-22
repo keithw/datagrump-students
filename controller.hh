@@ -2,7 +2,7 @@
 #define CONTROLLER_HH
 
 #include <stdint.h>
-
+#include <vector>
 /* Flow controller interface */
 
 class Controller
@@ -11,10 +11,10 @@ public:
   /* Public interface for the flow controller */
   /* You can change these if you prefer, but will need to change
      the call site as well (in datagrump-sender.cc) */
-  enum ControlSchemes {FIXED, AIMD, DELAY};
+  enum ControlSchemes {FIXED, AIMD, DELAY, DELAY_SCALING};
 
   /* Default constructor */
-  Controller( const bool debug, unsigned int max_window_size, unsigned int max_delay );
+  Controller( const bool debug, unsigned int max_window_size, unsigned int max_delay, float scaling_factor_delay, float multi_dsf );
 
   /* Get current window size, in packets */
   unsigned int window_size( void );
@@ -41,7 +41,10 @@ private:
     unsigned int the_window_size;
     unsigned int max_window_size_;
     unsigned int max_delay_;
+    float scaling_factor_delay_;
+    float multi_dsf_;
     ControlSchemes control_scheme;
+    std::vector<int> past_Delays;
 
 };
 

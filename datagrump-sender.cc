@@ -13,8 +13,10 @@ int main( int argc, char *argv[] )
 {
   /* check arguments */
   bool debug = true;
-  unsigned int max_window_size = 30;
-  unsigned int max_delay = 1000;
+  unsigned int max_window_size = 30; // best is 30
+  unsigned int max_delay = 70; // best is 70
+  float delay_scaling_factor = 0.2; // best is 0.2
+  float multi_dsf = 8; //best is 8
   if (argc > 3) {
     for (int i = 0; i < argc; i++) {
       if (string(argv[i]) == "debug") {
@@ -24,17 +26,33 @@ int main( int argc, char *argv[] )
 	  fprintf(stderr, "Not enough or invalid arguments, please try again.\n");
 	  exit(1);
 	} else {
-	  max_window_size = (unsigned int)atoi(argv[i+1]);
+	  //max_window_size = (unsigned int)atoi(argv[i+1]);
 	  fprintf(stderr, "max_window_size = %s\n", argv[i+1]);
 	  fprintf(stderr, "max_window_size = %d\n", max_window_size);
 	  i++;
 	}
-      } else if (string(argv[i]) == "-maxdelay") {
+      } else if (string(argv[i]) == "-delaythresh") {
 	if (i+1 == argc) {
 	  fprintf(stderr, "Not enough or invalid arguments, please try again.\n");
 	  exit(1);
 	} else {
-	  max_delay = (unsigned int)atoi(argv[i+1]);
+	  //max_delay = (unsigned int)atoi(argv[i+1]);
+	  i++;
+	}
+      } else if (string(argv[i]) == "-delayscaling") {
+	if (i+1 == argc) {
+	  fprintf(stderr, "Not enough or invalid arguments, please try again.\n");
+	  exit(1);
+	} else {
+	  //delay_scaling_factor = (float)atof(argv[i+1]);
+	  i++;
+	}
+      } else if (string(argv[i]) == "-delaymulti") {
+	if (i+1 == argc) {
+	  fprintf(stderr, "Not enough or invalid arguments, please try again.\n");
+	  exit(1);
+	} else {
+	  //multi_dsf = (float)atof(argv[i+1]);
 	  i++;
 	}
       }
@@ -61,7 +79,7 @@ int main( int argc, char *argv[] )
     uint64_t next_ack_expected = 0;
 
     /* Initialize flow controller */
-    Controller controller( debug , max_window_size, max_delay);
+    Controller controller( debug , max_window_size, max_delay, delay_scaling_factor, multi_dsf);
 
     /* Loop */
     while ( 1 ) {
