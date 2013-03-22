@@ -227,7 +227,7 @@ int Controller::chompWindow(int cint, double cwindDL) {
   // TODO: change 75 to something related to ~ 2*rtt!!. Try 1.5 or something
   if ((lastAck > 0) && ((tStamp - lastAck) > (rttest))) {
     fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
-    cint = 0;
+    cint = 1;
     networkDown = true;
   }
   if ((lastAck > 0) && ((tStamp - lastAck) > (0.5*rttest))) {
@@ -235,7 +235,7 @@ int Controller::chompWindow(int cint, double cwindDL) {
     cint = 1;//cint/2;
   }
   else if ((lastAck > 0)  && (cint == (int)lastCW)) {
-    cint += 1; // don't ever stay in a state without exploring up
+    //cint += 1; // don't ever stay in a state without exploring up
   }
   // // make sure %change in cint isn't too spiky : causes delays
   // if ((lastCW > 0) && (cint > (int)lastCW))
