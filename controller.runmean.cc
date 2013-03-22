@@ -62,7 +62,7 @@ unsigned int Controller::window_size( void )
   double cwindDL = estimateParameters();
 assert(cwindDL >= 0) ;
   int cint = (int) cwind;
-  //cint = chompWindow(cint, cwindDL);
+  cint = chompWindow(cint, cwindDL);
   if(cint<1){cint=1;}
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
@@ -241,18 +241,11 @@ double Controller::estimateParameters() {
 
 
 int Controller::chompWindow(unsigned int cint, double cwindDL) {
-  // if (networkDown && (sendTimestamp.size() > 5)) {
-  //   //while (networkDown && (sendTimestamp.size() > 5)) usleep(1000);
-  //   return 2;
-  // }
-  if (networkDown) return 0;
+  if (lastAck == 0) return 50;
+  //if (networkDown) return 0;
   uint64_t tStamp = timestamp();
   // if we have a zero congestion window, push it out of this regime
   // if we are just starting up
-  if (cint < 1)
-    if ((lastcint == 0) || (ackTracker == 0.0))
-      cint = 1;
-  //if (rho > 0.25) cint += 1;
   // if ((lastcint >= cint) && (lastcint <= lastPB) && (lastcint <= 1.5*(cint)))
   //   cint = lastcint+1;
 
@@ -267,7 +260,7 @@ int Controller::chompWindow(unsigned int cint, double cwindDL) {
     }
     if ((lastAck > 0) && ((tStamp - lastAck) > (0.5*RTT))) {
       //fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
-      cint = 1;//cint/2;
+      //cint = 1;//cint/2;
     }
     // else if ((lastAck > 0)  && (cint == lastcint)) {
     //   cint += 1; // don't ever stay in a state without exploring up
@@ -283,7 +276,6 @@ int Controller::chompWindow(unsigned int cint, double cwindDL) {
     fprintf( fsend, "@%lu, %d, %.4f, %.4f, %.4f, %u, %.2f, %.1f, %lu\n",
              (tStamp - start_time), cint, cwindDL, cwind, ackTracker, lastcint, ackLastDelta, RTT, (lastAck > 0) ? (tStamp - lastAck) : 0);
   }
-  if (lastAck == 0) cint = 50;
 
   lastcwind = cwind;
   lastcint = cint;
