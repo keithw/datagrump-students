@@ -74,7 +74,7 @@ public:
                         /* when the acknowledged packet was received */
                         const uint64_t timestamp_ack_received );
 
-  int chompWindow(int cint, double cwindDL);
+  int chompWindow(unsigned int cint, double cwindDL);
   void markBeginning(const uint64_t start_sequence_number, const uint64_t end_sequence_number);
 };
 
