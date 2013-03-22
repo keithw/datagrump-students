@@ -52,7 +52,7 @@ Controller::Controller( const bool debug )
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
-  //double cwindDL = estimateParameters();
+  double cwindDL = estimateParameters();
   int cint = (int) cwind;
   cint = chompWindow(cint, cwind);
   if(cint<1){cint=1;}
@@ -187,7 +187,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
 
 
 double Controller::estimateParameters() {
-
+  if (rho < 0.5) return cwind;
   uint64_t tStamp = timestamp();
   //downlink response rate:
   double ackRateEst = cwind/rttest;
