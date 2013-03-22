@@ -254,7 +254,7 @@ int Controller::chompWindow(unsigned int cint, double cwindDL) {
   // things are queued up!!
   // TODO: change 75 to something related to ~ 2*rtt!!. Try 1.5 or something
   if ((lastAck > 0) && (cint > 0)) {
-    if ((lastAck > 0) && (cint > 0) && ((tStamp - lastAck) > (RTT))) {
+    if ((lastAck > 0) && (cint > 0) && ((tStamp - lastAck) > (1.5*RTT))) {
       fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
       cint = 0;
       networkDown = true;
