@@ -38,7 +38,7 @@ unsigned int Controller::window_size( void )
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size_float = %f.\n",
-	     timestamp(), window_float );*/
+	     timestamp(), window_float );
 	fprintf( stderr, "At time %lu, return window_size = %d.\n",
 	     timestamp(), window );
   }
