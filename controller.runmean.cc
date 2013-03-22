@@ -9,6 +9,7 @@
 using namespace Network;
 double cwind;
 std::queue<int>  runmean;
+std::queue<int>  runmeanLR;//long-range queue
 std::list<int>  stimes;
 std::list<int>  rtimes;
 std::list< std::pair<uint64_t, uint64_t> > burstPackets;
@@ -25,6 +26,7 @@ Controller::Controller( const bool debug )
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
     resolution(100),
+    resolutionLR(200),
     rtt(40),
     rttsum(400),
     rttn(10),
@@ -114,6 +116,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   stimes.push_front(send_timestamp_acked);
   rtimes.push_front(recv_timestamp_acked);
   runmean.push(timestamp_ack_received);
+  runmeanLR.push(timestamp_ack_received);
   //trim queue to only include last (resolution+rtt/2) of packets.
   while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution)){
     /*fprintf( stderr, "pop %i, timediff %lu \n",
@@ -122,8 +125,14 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     stimes.pop_back();
     rtimes.pop_back();
   }
+  // Long range queue trim
+  while(runmeanLR.size()>0 && (timestamp_ack_received-runmeanLR.front())>(resolutionLR)){
+    runmeanLR.pop();
+  }
   //fprintf(stderr, "size: %i\n",(int)runmean.size());
-  double bwest=((double)runmean.size())/resolution;
+  double bwestSR=((double)runmean.size())/resolution;
+  double bwestLR=((double)runmeanLR.size())/resolutionLR;
+  double bwest=(bwestSR+bwestLR*0.5)/1.5;
   if(rtimes.size()>0){
     std::list<int>::const_iterator rIt=rtimes.begin();
     std::list<int>::const_iterator sIt=stimes.begin();
@@ -174,43 +183,6 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   }
 }
 
-void Controller::refineParametersWhenSend(
-                               /* when the acknowledged packet was received */
-                               const uint64_t timestamp_ack_received )
-{
-  double rtteps=20;
-  //trim queue to only include last (resolution+rtt/2) of packets.
-  while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution)){
-    /*fprintf( stderr, "pop %i, timediff %lu \n",
-      runmean.front(),timestamp_ack_received-runmean.front());*/
-    runmean.pop();
-    stimes.pop_back();
-    rtimes.pop_back();
-  }
-  //fprintf(stderr, "size: %i\n",(int)runmean.size());
-  double bwest=((double)runmean.size())/resolution;
-  if(rtimes.size()>0){
-    std::list<int>::const_iterator rIt=rtimes.begin();
-    std::list<int>::const_iterator sIt=stimes.begin();
-    int diffsum=0;
-    for(; (rIt!=rtimes.end() && sIt != stimes.end()); ++rIt, ++sIt){
-    int rtime= *rIt;
-    int stime= *sIt;
-    diffsum+=rtime-stime;
-    }
-    double mrtt=diffsum/((int)rtimes.size());
-    //fprintf(stderr,"rttmean: %i\n",(int)mrtt);
-    // if our RTT is low and stable with at least 2xRTT our last time
-    if(mrtt< (rtt/2+rtteps/4) && ((timestamp_ack_received-lastspike)>(rtt))){
-      cwind=bwest*(rtt+2*rtteps);
-      lastspike=timestamp_ack_received;
-    }else{
-      cwind= bwest*(rtt+rtteps);
-    }
-  }else{
-    cwind= bwest*(rtt+rtteps);
-  }
-}
 
 
 

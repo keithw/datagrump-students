@@ -61,10 +61,6 @@ int main( int argc, char *argv[] )
           // end will be
           controller.markBeginning(x.sequence_number(), x.sequence_number() + nsend - 1);
         }
-	if( ns >= 6){
-	  window_size = controller.window_size();	  
-	  ns=1;
-	}
 	ns ++;
       }
 
