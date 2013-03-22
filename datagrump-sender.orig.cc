@@ -64,7 +64,7 @@ int main( int argc, char *argv[] )
           // end will be
           controller.markBeginning(x.sequence_number(), x.sequence_number() + nsend - 1);
         }
-	ns ++;
+        ns ++;
       }
       struct pollfd fd = { sock.fd(), POLLIN, 0 };
       int ptest = poll( &fd, 1, 0 );
@@ -75,11 +75,15 @@ int main( int argc, char *argv[] )
         perror( "poll" );
         throw string( "poll returned error." );
       } else if ( packet_received == 0 ) { /* timeout */
-        /* send a packet */
-        Packet x( destination, sequence_number++ );
-        sock.send( x );
-        controller.packet_was_sent( x.sequence_number(),
-                                    x.send_timestamp() );
+        // if (controller.networkDown && (controller.sendTimestamp.size() > 5))
+        //   ;
+        // else {
+          /* send a packet */
+          Packet x( destination, sequence_number++ );
+          sock.send( x );
+          controller.packet_was_sent( x.sequence_number(),
+                                      x.send_timestamp() );
+        // }
       } else {
         /* we got an acknowledgment */
         Packet ack = sock.recv();
