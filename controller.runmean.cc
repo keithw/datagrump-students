@@ -255,7 +255,7 @@ int Controller::chompWindow(unsigned int cint, double cwindDL) {
   if ((lastAck > 0) && (cint > 0)) {
     if ((lastAck > 0) && (cint > 0) && ((tStamp - lastAck) > (1.5*RTT))) {
       fprintf(fsend, "%lu: unseen last timestamp %lu = %lu\n", tStamp, lastAck, tStamp - lastAck );
-      cint = 0;
+      //cint = 0;
       networkDown = true;
     }
     if ((lastAck > 0) && ((tStamp - lastAck) > (0.5*RTT))) {
