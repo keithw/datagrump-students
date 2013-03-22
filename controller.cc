@@ -96,7 +96,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   dev = rtt - srtt;
   dev = dev>0?dev:0-dev;
   rttdev = (beta*dev) + ((1-beta)*rttdev);
-  timeout = srtt + (1*rttdev);
+  timeout = srtt + (4*rttdev);
   
   unsigned int avg = 0;
   for (int n=0 ; n<rsize ; n++ ){
@@ -108,7 +108,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   	window_float = window_float + (1.0/window);
   }
   else{
-  	window_float = window_float - (1.5/window);
+  	window_float = 0.9*window_float;// - (1.5/window);
   }
   
   for (int n=0 ; n<(rsize-1) ; n++ ){
