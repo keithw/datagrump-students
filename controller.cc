@@ -37,6 +37,7 @@ unsigned int Controller::window_size( void )
   //int the_window_size = 15;
   
   window = (unsigned int) window_float;
+  if (window==0){window = 1;}
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size_float = %f.\n",
@@ -46,8 +47,6 @@ unsigned int Controller::window_size( void )
   }
 
   //return the_window_size;
-  
-  if (window==0){window = 1;}
   return window;
 }
 
@@ -106,10 +105,10 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   avg = avg/rsize;
   
   if (rtt > (avg)){
-  	window_float = window_float + (2.0/window);
+  	window_float = window_float + (1.0/window);
   }
   else{
-  	window_float = window_float - (0.5/window);
+  	window_float = window_float - (1.5/window);
   }
   
   for (int n=0 ; n<(rsize-1) ; n++ ){
