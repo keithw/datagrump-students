@@ -36,8 +36,8 @@ unsigned int Controller::window_size( void )
   /* Default: fixed window size of one outstanding packet */
   //int the_window_size = 15;
   
+  if (window_float<=0){window_float = 1.0;}
   window = (unsigned int) window_float;
-  if (window<=0){window = 1;}
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size_float = %f.\n",
