@@ -24,7 +24,7 @@ Controller::Controller( const bool debug )
     cwind(10),
     runmean(std::queue<int>()),
     packetBalance(std::list<uint64_t>()),
-    resolution(80),
+    resolution(85),
     rtt(40),
     rttsum(400),
     rttn(10),
@@ -49,10 +49,10 @@ Controller::Controller( const bool debug )
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
-  double cwindDL = estimateParameters();
+  //double cwindDL = estimateParameters();
   int cint = (int) cwind;
   if(cint<1){cint=1;}
-  cint = chompWindow(cint, cwindDL);
+  //cint = chompWindow(cint, cwindDL);
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
              timestamp(), cint );
