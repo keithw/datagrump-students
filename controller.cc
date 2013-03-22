@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
 
 #include "controller.hh"
 #include "timestamp.hh"
 
 using namespace Network;
+using namespace std;
+
+int acks = 0;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
@@ -64,17 +68,22 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
 	     send_timestamp_acked, recv_timestamp_acked );
 
+	  }
 	int diff = recv_timestamp_acked - send_timestamp_acked;
 	fprintf( stderr, "the difference is %d.\n", diff);
 	cwnd_from_delay2(diff);
-  }
+	cerr<<"min table = "<<min_table<<endl;
 
 }
 
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 100; /* timeout of one second */
+
+  if(acks < 1000)
+    return 100; /* timeout of one second */
+  else
+    return 2*min_table;
 }
 
 void Controller::cwnd_from_delay( int diff )
@@ -112,7 +121,7 @@ void Controller::cwnd_from_delay( int diff )
 void Controller::add_table( int item)
 {
 	table[pointer_table] = item;
-	min_table = (item>min_table)?item:min_table;
+	min_table = (item<min_table)?item:min_table;
 	++pointer_table;
 	pointer_table = pointer_table%800;
 
@@ -140,8 +149,8 @@ void Controller::cwnd_from_delay2( int item)
 		cwnd+=(double)(1/cwnd);
 		reduced = 0;
 	}
-	if (cwnd == 0)
-			cwnd=1;
+	if (cwnd < 1)
+ 	  cwnd=1;
 
 }
 
