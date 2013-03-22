@@ -37,8 +37,8 @@ unsigned int Controller::window_size( void )
   //int the_window_size = 15;
 
   if ( debug_ ) {
-    /*fprintf( stderr, "At time %lu, return window_size = %d.\n",
-	     timestamp(), the_window_size );*/
+    fprintf( stderr, "At time %lu, return window_size_float = %f.\n",
+	     timestamp(), window_float );*/
 	fprintf( stderr, "At time %lu, return window_size = %d.\n",
 	     timestamp(), window );
   }
@@ -96,23 +96,23 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   rttdev = (beta*dev) + ((1-beta)*rttdev);
   timeout = srtt + (4*rttdev);
   
-  // uint64_t avg = 0;
-//   for (int n=0 ; n<rsize ; n++ ){
-//   	avg = avg + rtt_rec[n];
-//   }
-//   avg = avg/rsize;
-//   
-//   if (rtt > (avg)){
-//   	window_float = window_float + (1.0/window);
-//   }
-//   else{
-//   	window_float = window_float - (0.5/window);
-//   }
-//   
-  // for (int n=0 ; n<(rsize-1) ; n++ ){
-//   	rtt_rec[n] = rtt_rec[n+1];
-//   }
-//   rtt_rec[rsize-1] = rtt;
+  unsigned int avg = 0;
+  for (int n=0 ; n<rsize ; n++ ){
+  	avg = avg + rtt_rec[n];
+  }
+  avg = avg/rsize;
+  
+  if (rtt > (avg)){
+  	window_float = window_float + (1.0/window);
+  }
+  else{
+  	window_float = window_float - (0.5/window);
+  }
+  
+  for (int n=0 ; n<(rsize-1) ; n++ ){
+  	rtt_rec[n] = rtt_rec[n+1];
+  }
+  rtt_rec[rsize-1] = rtt;
   
 }
 
