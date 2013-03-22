@@ -62,26 +62,23 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
     if (countdown == 0) {
       countdown = countdown_max;
       fast = true;
-    }
-    else {
+    } else {
       countdown--;
       fast = false;      
     }
-  }
-  else {
+  } else {
     fast = false;
     countdown = countdown_max;
     prev_send_time = send_time;
   }
 
   if (fast) {
-    if (send_delta == 0)
+    if (send_delta == 0) {
       w_size = 15;
-    else
+    } else {
       w_size = 5.0 / sqrt(send_delta);
-    std::cerr << "fast: " << send_delta << ", w_size = " << w_size << ", send time = " << send_time << std::endl;
-  }
-  else {
+    }
+  } else {
     w_size = 1;
   }
 
