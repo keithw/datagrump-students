@@ -214,13 +214,13 @@ double Controller::estimateParameters() {
     // else if ((delayTracker > (2.0*RTT)) && (cwind > 1)  && (ackRateObs < ackRateEst))
     //   cwind -= 2;
   } else { // not so confident
-    if ((delayTracker <= (1.1*RTT)) && (ackRateObs > ackRateEst)) {
-      fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
-      wt = 0.0;//9;
-      cwind =  (wt*cwindDL + (1-wt)*cwind);
-      if (cwind > lastcwind)
-        cwind += 1;
-    }
+    // if ((delayTracker <= (1.1*RTT)) && (ackRateObs > ackRateEst)) {
+    //   fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
+    //   wt = 0.0;//9;
+    //   cwind =  (wt*cwindDL + (1-wt)*cwind);
+    //   if (cwind > lastcwind)
+    //     cwind += 2;
+    // }
     // else if ((delayTracker > (1.5*RTT)) && (delayTracker < (2*RTT)) && (cwind > 1) && (ackRateObs < ackRateEst))
     //   cwind -= 1;
     // // else if ((delayTracker > (2.0*RTT)) && (cwind > 1)  && (ackRateObs < ackRateEst))
@@ -233,7 +233,7 @@ double Controller::estimateParameters() {
 
 
 int Controller::chompWindow(unsigned int cint, double cwindDL) {
-  if (networkDown) return 0;
+  while (networkDown) usleep(1000);
   uint64_t tStamp = timestamp();
   // if we have a zero congestion window, push it out of this regime
   // if we are just starting up
@@ -290,6 +290,7 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
                                   const uint64_t send_timestamp_acked,
                                   const uint64_t recv_timestamp_acked,
                                   const uint64_t timestamp_ack_received ){
+  networkDown = false;
   double delay = RTT;
   for (list< pair<uint64_t, uint64_t> >::iterator it = sendTimestamp.begin(); it != sendTimestamp.end(); ++it) {
     if (it->first == sequence_number_acked) {
@@ -334,7 +335,6 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
   else if(lastAck == timestamp_ack_received) {//multiple acks at once
     ++recovery;
   }
-  networkDown = false;
 }
 void Controller::markBeginning(const uint64_t start_sequence_number, const uint64_t end_sequence_number) {
   burstPackets.push_back(pair<uint64_t, uint64_t>(start_sequence_number, end_sequence_number));
