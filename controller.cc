@@ -98,12 +98,13 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
-  double rtt = (double)(timestamp_ack_received - send_timestamp_acked);
+  double rtt = (double)(recv_timestamp_acked - send_timestamp_acked);
   update_rtt_stats(rtt);
 
-  /* Update window based on RTT average */
-  w_size_ = max(w_size_ + log(pow((1/(rtt_ratio_/2.2)),10))*(params_.AI / max(w_size_, 1.0)),1.0);
+  /* Method 1 (default): Update window size based on RTT ratio */
+  w_size_ = max(1.0, w_size_ + 10 * log(2.2 / rtt_ratio_) / max(w_size_, 1.0));
 
+  /* Method 2: Update window size based on the capacity estimate */
   if (params_.use_capacity_estimate) {
     last_ack_received_ = sequence_number_acked;
     acks_.push_back(Ack(send_timestamp_acked, recv_timestamp_acked,
