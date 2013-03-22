@@ -10,8 +10,9 @@ using namespace Network;
 const double Controller::ADDITIVE_INCREASE = 0.2f;
 const double Controller::MULTIPLICATIVE_DECREASE = 10;
 
-const double Controller::DELAY_TRIGGER_DECREASE = 3.0f;
-const double Controller::DELAY_TRIGGER_INCREASE = 2.0f;
+const double Controller::DELAY_TRIGGER_DECREASE = 4.0f;
+const double Controller::DELAY_TRIGGER_INCREASE = 15.0f;
+const double Controller::SUPER_DELAY_TRIGGER_INCREASE = 18.0f;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
@@ -42,8 +43,8 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
 {
     should_acked.push(
 		      std::make_pair(
-			  -(send_timestamp + (DELAY_UPPER_BOUND / PROBE_TIMEOUT) ),
-			  send_timestamp )
+			  -(send_timestamp + DELAY_UPPER_BOUND ),
+			  sequence_number )
 		      );
     
   /* Default: take no action */
@@ -137,8 +138,6 @@ void Controller::ack_received_delay_contest ( const uint64_t sequence_number_ack
 			       const uint64_t timestamp_ack_received)
                                /* when the ack was received (by sender) */
 {
-  acked.insert(sequence_number_acked);
-    
   // compute the round trip time
   uint64_t to_time = recv_timestamp_acked - send_timestamp_acked;
   uint64_t from_time = timestamp_ack_received - recv_timestamp_acked;
@@ -146,16 +145,20 @@ void Controller::ack_received_delay_contest ( const uint64_t sequence_number_ack
 
   // Don't need this here anymore not to act twice.
   /*
+  
   if ((int)rtt >= DELAY_UPPER_BOUND) {
         //decrease the window size by some amount
         the_window_size -= DELAY_TRIGGER_DECREASE;
         if (the_window_size <= CONSERVATIVE_WINDOW_SIZE)
             the_window_size = CONSERVATIVE_WINDOW_SIZE;
   */
-	    
-  if ((int)rtt <= DELAY_LOWER_BOUND) {
-        the_window_size += DELAY_TRIGGER_INCREASE/the_window_size;
-  }
+    if (late_packet_count <= 10) {
+      if ((int)rtt <= DELAY_LOWER_BOUND) {
+        the_window_size += SUPER_DELAY_TRIGGER_INCREASE /the_window_size;
+      } else if ((int)rtt >= DELAY_LOWER_BOUND && (int)rtt <= 2*DELAY_LOWER_BOUND) {
+        the_window_size += ( 1 - (rtt - DELAY_LOWER_BOUND)/DELAY_LOWER_BOUND)*DELAY_TRIGGER_INCREASE/the_window_size;
+      }
+    }
   
   if (rtt > 0) {
     
@@ -180,6 +183,8 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received)
                                /* when the ack was received (by sender) */
 {
+  acked.insert(sequence_number_acked);
+  
   switch(mode) {
     case MODE_FIXED_WINDOW_SIZE:
         ack_received_fixed_window_size(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
@@ -206,36 +211,51 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   */
 }
 
-void Controller::acknowledgment_timeout( void )
+void Controller::preempt_decrease ( 
+    const uint64_t current_time )
 {
-    if ( debug_ ) {
-	fprintf( stderr,"Received acknowledgment timeout.\n" );
-    }
+    //probes_count++;
 
-    probes_count++;
-
-    bool preempt = false;
-    while ( !should_acked.empty() ) {
+    //bool preempt = false;
+    late_packet_count = 0;
+    
+    while ( !should_acked.empty() ) {        
+        
 	uint64_t
 	    sha = -should_acked.top().first,
 	    id = should_acked.top().second;
 	    
-	if (sha > probes_count) {
+       
+	if (sha > current_time ) {
 	    // nothing fancy going on here.
 	    break;
 	}
 
-	if (acked.find(id) != acked.end() && !preempt) {
+    //fprintf(stderr, " id: %lu, sha: %lu,time: %lu.\n",id,sha,current_time);
+     
+	if (acked.find(id) != acked.end() /* && !preempt*/) {
 	    // Instantiate preemptive algorithm;
+        late_packet_count += 1;
+        if (late_packet_count >= 10) {
+            //fprintf(stderr,"Late packets: %d\n",late_packet_count);
+        }
 	    
 	    // This is COPIED! need to factor out later.
 	    the_window_size -= DELAY_TRIGGER_DECREASE;
 	    if (the_window_size <= CONSERVATIVE_WINDOW_SIZE)
-		the_window_size = CONSERVATIVE_WINDOW_SIZE;
+            the_window_size = CONSERVATIVE_WINDOW_SIZE;
 	    
-	    preempt = true;
+        fprintf(stderr, "Haven't seen packet for 150ms or something. Cutting down window size to %f.\n", the_window_size);
+	    //preempt = true;
 	}
 	should_acked.pop();
+    }
+}
+
+void Controller::acknowledgment_timeout( void ) {
+ 
+    if ( debug_ ) {
+	fprintf( stderr,"Received acknowledgment timeout.\n" );
     }
     
     switch(mode) {
@@ -260,5 +280,5 @@ unsigned int Controller::timeout_ms( void )
         return AIMD_TIMEOUT;
         break;
   }
-  return PROBE_TIMEOUT; /* Be preemptive, utilizing sender's timeout; */
+  return TIMEOUT; /* Be preemptive, utilizing sender's timeout; */
 }

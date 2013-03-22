@@ -14,8 +14,8 @@ public:
   // How many PROBE_TIMEOUTs have passed?
   uint64_t probes_count;
 
-  static const int TIMEOUT = 1000;
-  static const int PROBE_TIMEOUT = 10;
+  static const int TIMEOUT = 100;
+  //static const int PROBE_TIMEOUT = 50;
     
 private:
   // What is acked, we might ask?!
@@ -33,16 +33,20 @@ private:
   static const int AIMD_TIMEOUT = 100;
   
   /* Delay trigger mode */
-  static const int DELAY_UPPER_BOUND = 140;
-  static const int DELAY_LOWER_BOUND = 50;
+  static const int DELAY_UPPER_BOUND = 150;
+  static const int DELAY_LOWER_BOUND = 80;
   static const double DELAY_TRIGGER_DECREASE;
   static const double DELAY_TRIGGER_INCREASE;
+  static const double SUPER_DELAY_TRIGGER_INCREASE;
   
   /* Add member variables here */
-  static const int BASELINE_WINDOW_SIZE = 10;
+  static const int BASELINE_WINDOW_SIZE = 20;
   static const int CONSERVATIVE_WINDOW_SIZE = 1;
   static const int DELAY_INCR_THRESHOLD = 150;
   static const int DELAY_DECR_THRESHOLD = 50;
+  
+  int late_packet_count = 0;
+  
   
   double the_window_size;
   
@@ -90,7 +94,9 @@ public:
   /* How long to wait if there are no acks before sending one more packet */
   unsigned int timeout_ms( void );
   
-  void acknowledgment_timeout( void );
+  void acknowledgment_timeout( void);
+  
+  void preempt_decrease( const uint64_t current_time );
 };
 
 #endif
