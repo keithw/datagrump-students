@@ -13,7 +13,7 @@ int acks = 0;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), cwnd(1), reduced(0), thres(50), table{0}, pointer_table(0),min_table(0)
+  : debug_( debug ), cwnd(1), reduced(0), thres(50), table{0}, pointer_table(0),min_table(1<<20)
 {
 	std::srand(std::time(0));
 	cwnd = std::rand()%100+1;
@@ -72,6 +72,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 	int diff = recv_timestamp_acked - send_timestamp_acked;
 	fprintf( stderr, "the difference is %d.\n", diff);
 	cwnd_from_delay2(diff);
+	//cwnd += 1.0/cwnd;
 	cerr<<"min table = "<<min_table<<endl;
 
 }
@@ -80,10 +81,12 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 unsigned int Controller::timeout_ms( void )
 {
 
-  if(acks < 1000)
+  //if(acks < 1000)
     return 100; /* timeout of one second */
-  else
-    return 2*min_table;
+  //else
+  //  return 2*min_table;
+  //cwnd/=2;
+  //cwnd = max(cwnd, 1.0);
 }
 
 void Controller::cwnd_from_delay( int diff )
