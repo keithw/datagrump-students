@@ -108,8 +108,8 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }
   avg = avg/rsize;
   
-  if (avg > 100){
-  	window_float = 0.65*window_float;
+  if (avg > 110){
+  	window_float = 0.8*window_float;
   }
   
 }
@@ -134,7 +134,7 @@ void Controller::timout_detected(void)
     fprintf( stderr, "Timeout Detected. \n" );
   }
   
-	window_float = 0.65*window_float;
+	window_float = 0.7*window_float;
 }
 
 void Controller::debugging(int n)
