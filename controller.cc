@@ -21,7 +21,7 @@ unsigned int Controller::window_size( void )
   /* Default: fixed window size of one outstanding packet */
   //int the_window_size = 15;
   
-  if (window_float<=0){window_float = 1.0;}
+  if (window_float<=1){window_float = 1.0;}
   window = (unsigned int) window_float;
 
   if ( debug_ ) {
@@ -72,10 +72,6 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   
   rtt = timestamp_ack_received - send_timestamp_acked;
   //int rsize = 5;//sizeof(rtt_rec)/sizeof(float);
-  
-  /*if (srtt == 0){
-  	srtt = rtt;
-  }*/
   
   srtt = (alpha*rtt) + ((1-alpha)*srtt);
   dev = rtt - srtt;
