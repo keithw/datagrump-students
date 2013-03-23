@@ -20,9 +20,16 @@ private:
   int dev;
   int rttdev;
   float beta;
+  
+  //holds recent rtts
   unsigned int rtt_rec [3];
+  
+  //number of recent rtts that are stored
   int rsize;
+  
+  //Average of recent rtts
   unsigned int avg;
+  
   float ratio;
   int wb;
 
