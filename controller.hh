@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-#include <map>
 #include <queue>
 
 /* Flow controller interface */
@@ -14,40 +13,17 @@ private:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
-//////// std:: map<uint64_t,uint64_t> packet_sent_times;
-  float curr_window_size;
-  
-////  uint64_t last_window_size_change;
-////  bool sent_once;
-////  bool in_initialization = true;
-////  bool in_getting_first_pkts_phase = true;
-////  uint64_t prev_delivery_time;
-////  uint64_t prev_delivery_times[10];
-////  size_t count_prev_pkts = 0;
-////  uint64_t curr_delivery_times[10];
-////  size_t count_curr_pkts = 0;
-////  size_t num_pkts_to_update = 10;
-////  size_t count_pkts_since_last_update;
 
-  uint64_t timeout_time;
-
-  int packets_in_queue;
-  int packet_counter;
-  int time_cutoff;
-  int measured_rate;
-  int rate_difference;
-  int skip_counter;
-  uint64_t last_receive_time;
-  int64_t packet_gap;
   int64_t rttmin;
+
+  // The time interval in ms during which packet receipts are counted to measure
+  // the packet receipt rate.
   const uint64_t time_interval = 150;
 
-  bool started;
-  uint64_t start_time;
-  int64_t rtt;
-  int64_t rtt_sum;
-  int64_t rtt_num;
+  const float min_window_size = 1;
+  const float stretch_factor = 2;
 
+  // Stores the packet receipt times during the last 150ms.
   std::queue< uint64_t > packet_times;
 
 public:
