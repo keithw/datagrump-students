@@ -230,7 +230,7 @@ double Controller::estimateParameters() {
   double wt = 0.5;
   if (recovering) {
     recovering = false;
-    return (36.8/ackTracker); // MTU/ackpacketsize /  packet receving rate
+    //return (36.8/ackTracker); // MTU/ackpacketsize /  packet receving rate
   }
   if (rho > 0.5) { // we have confident, recent estimates
     if ((delayTracker <= (1.1*RTT)) && (ackRateObs > ackRateEst)) {
