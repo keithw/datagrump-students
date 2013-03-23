@@ -149,7 +149,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   int truncresLR = resolutionLR;
   double bwestSR=((double)runmean.size())/truncres;
   double bwestLR=((double)runmeanLR.size())/truncresLR;
-  double bwest=(bwestSR+bwestLR)/(2);
+  double bwest=(bwestSR+bwestLR*2)/(3);
   if(rtimes.size()>0){
     list<int>::const_iterator rIt=rtimes.begin();
     list<int>::const_iterator sIt=stimes.begin();
