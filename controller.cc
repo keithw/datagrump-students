@@ -145,8 +145,11 @@ void Controller::cwnd_from_delay2( int item)
 	if (smaller>80 && reduced<=0){
 		cwnd = cwnd/2;
 		reduced = 1;
+	}else if(smaller<5){
+		cwnd+=1.5;
+		reduced = 0;
 	}else if(smaller<10){
-		++cwnd;
+		cwnd+=1;
 		reduced = 0;
 	}else if(smaller<30){
 		cwnd+=(double)(1/cwnd);
