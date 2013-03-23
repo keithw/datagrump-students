@@ -126,7 +126,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     uploaddelay=uploaddelay*0.5+(timestamp_ack_received-recv_timestamp_acked-RTT/2)*0.5;
     return;
   }
-  double rtttarget=20;
+  double rtttarget=17;
   //push new packet info onto queue
   stimes.push_front(send_timestamp_acked);
   rtimes.push_front(recv_timestamp_acked);
