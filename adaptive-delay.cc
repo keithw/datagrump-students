@@ -7,8 +7,11 @@ using namespace Network;
 
 /* Default constructor */
 AdaptDelayController::AdaptDelayController( const bool debug, const unsigned int cwnd, const uint64_t delay_threshold )
-  : Controller(debug, cwnd), delay_threshold(delay_threshold), tx_delay(0), sim_queue(std::deque<PacketData>()), recv_queue(std::deque<PacketData>()) 
+  : Controller(debug, cwnd), delay_threshold(delay_threshold), tx_delay(0.6), sim_queue(std::deque<PacketData>()), recv_queue(std::deque<PacketData>()) 
 {
+  sim_queue.clear();
+  recv_queue.clear();
+
   if ( debug_ ) {
     fprintf( stderr, "Using Adaptive Delay Controller!\n");
   }
@@ -20,6 +23,8 @@ void AdaptDelayController::packet_was_sent( const uint64_t sequence_number,
 				  const uint64_t send_timestamp, bool is_retransmit )
                                   /* in milliseconds */
 {
+  fprintf( stderr, "-- packet_was_sent - Start --\n");
+  
   /* Default: take no action */
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, sent packet %lu.\n",
@@ -30,6 +35,7 @@ void AdaptDelayController::packet_was_sent( const uint64_t sequence_number,
 
   /* Enqueue the PacketData into the sim_queue */
   sim_queue.push_back(PacketData(sequence_number, send_timestamp));
+  fprintf( stderr, "-- packet_was_sent - Finish --\n");
 }
 
 /* An ack was received */
@@ -42,11 +48,18 @@ void AdaptDelayController::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
+  fprintf( stderr, "-- ack_received - Start --\n");
   /* Check front of queue for packet drops */
-  while(sim_queue.front().sequence_number != sequence_number_acked){
-    sim_queue.pop_front();
-    tx_delay = recv_timestamp_acked - send_timestamp_acked;
-  }
+  if(!sim_queue.empty()){
+	  while(sim_queue.front().sequence_number != sequence_number_acked){
+  		if(sim_queue.front().sequence_number > sequence_number_acked) return;
+	    sim_queue.pop_front();
+			if(sim_queue.empty()) {fprintf( stderr, "-- ERROR! Things have gone horribly wrong now! --\n"); break;}
+	  }
+  } else {
+  	fprintf( stderr, "-- ERROR! Things have gone horribly wrong now! --\n");
+	}
+  	
 
   /* Assign receive time stamp */
   sim_queue.front().recv_timestamp = recv_timestamp_acked;
@@ -57,7 +70,7 @@ void AdaptDelayController::ack_received( const uint64_t sequence_number_acked,
   */
   bool coarse_delay = true;
   if(sim_queue.front().was_queued && !recv_queue.empty()){
-    tx_delay = 0.3*tx_delay + 0.7*(recv_timestamp_acked - recv_queue.back().recv_timestamp);
+    tx_delay = 0.2*tx_delay + 0.8*(recv_timestamp_acked - recv_queue.back().recv_timestamp);
   } else {
     tx_delay = recv_timestamp_acked - PROPDELAY - send_timestamp_acked;
   }
@@ -102,17 +115,20 @@ void AdaptDelayController::ack_received( const uint64_t sequence_number_acked,
     }
 
     /* Now calculate how much delay will the newest packet in the queue see */
-    delay_estimate = tx_delay + std::max((sim_queue.back().recv_timestamp - timestamp_ack), PROPDELAY);
+    delay_estimate = tx_delay + std::max((sim_queue.back().recv_timestamp - timestamp_ack_received), (double)PROPDELAY);
   } else {
       delay_estimate = tx_delay + PROPDELAY;
   }
   double delay_slack = PROPDELAY + tx_delay + delay_threshold - delay_estimate;
  
-  double delay_next_ack = delaY_threshold+1;
+  double delay_next_ack = delay_threshold+1;
   if(!sim_queue.empty()){
     delay_next_ack = sim_queue.front().recv_timestamp - recv_timestamp_acked;
   }
-  int delta_cwnd = (delay_slack>0) ? (int) (std::min(delay_slack, delay_next_recvd)/tx_delay) : -1;
+  else{
+    delay_next_ack = 2*PROPDELAY + tx_delay;
+  }
+  int delta_cwnd = (delay_slack>0) ? (int) (std::min(delay_slack, delay_next_ack)/tx_delay) : -1;
   cwnd += delta_cwnd;
   if(cwnd == 0) cwnd = 1;
 
@@ -125,5 +141,7 @@ void AdaptDelayController::ack_received( const uint64_t sequence_number_acked,
     
     fprintf( stderr, "Control Decisions - tx_delay: %g, delay_type: %c, delay_estimate %g, delta_cwnd: %d, cwnd: %d\n", tx_delay, (coarse_delay)?'C':'F', delay_estimate, delta_cwnd, cwnd );
   }
+
+  fprintf( stderr, "-- ack_received - Finish --\n");
 
 }
