@@ -93,17 +93,17 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   int rtt_i = (int) rtt;
   int diff = (avg_i-rtt_i)>0?(avg_i-rtt_i):(rtt_i-avg_i);
   if (avg_i != 0){
-  	ratio = 4.0*diff/(1.0*avg_i);
+  	ratio = diff/(1.0*avg_i);
   }
   if (rtt < (avg)){
   	//window_float = (1.0+(1.0*(avg_i-rtt_i)/avg_i))*window_float;// + (1.0/window);
   	//window_float = window_float + (4.75/window_float);
-  	window_float = window_float + ((wb+ratio)/window_float);
+  	window_float = window_float + (ratio*window_float);
   }
   else{
   	//window_float = (1.0*(rtt_i-avg_i)/avg_i)*window_float;// - (1.5/window);
   	//window_float = window_float - (2.75/window_float);
-  	window_float = window_float - ((wb+ratio)/window_float);
+  	window_float = window_float - (ratio*window_float);
   }
   
   for (int n=0 ; n<(rsize-1) ; n++ ){
