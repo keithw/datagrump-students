@@ -81,7 +81,7 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
     fprintf( stderr, "At time %lu, sent packet %lu.\n",
              send_timestamp, sequence_number );
   }
-  sendTimestamp.push_back(pair<uint64_t, uint64_t>(sequence_number, send_timestamp));
+  //sendTimestamp.push_back(pair<uint64_t, uint64_t>(sequence_number, send_timestamp));
 }
 
 /* An ack was received */
@@ -95,7 +95,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* when the ack was received (by sender) */
 {
   refineParameters(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
-  refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
+  //refineModulation(sequence_number_acked,send_timestamp_acked,recv_timestamp_acked,timestamp_ack_received);
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
              timestamp_ack_received, sequence_number_acked );
