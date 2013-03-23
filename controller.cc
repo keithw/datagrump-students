@@ -8,7 +8,7 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), window(50), window_float(50.0), timeout(1500),
+  : debug_( debug ), window(70), window_float(70.0), timeout(1500),
   rtt(0), srtt(0), alpha(0.4), dev(0), rttdev(0),
   beta(0.4), rtt_rec{0,0,0}, rsize(sizeof(rtt_rec)/sizeof(float)),
   avg(0), ratio(0), wb(2)
