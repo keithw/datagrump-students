@@ -20,7 +20,7 @@ private:
   int dev;
   int rttdev;
   float beta;
-  unsigned int rtt_rec [3];
+  unsigned int rtt_rec [7];
   int rsize;
   unsigned int avg;
   float ratio;
