@@ -79,12 +79,6 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   rttdev = (beta*dev) + ((1-beta)*rttdev);
   timeout = srtt + (5*rttdev);
   
-  avg = 0;
-  for (int n=0 ; n<rsize ; n++ ){
-  	avg = avg + rtt_rec[n];
-  }
-  avg = avg/rsize;
-  
   int avg_i = (int) avg;
   int rtt_i = (int) rtt;
   int diff = (avg_i-rtt_i)>0?(avg_i-rtt_i):(rtt_i-avg_i);
@@ -108,8 +102,14 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }
   rtt_rec[rsize-1] = rtt;
   
-  if (avg > 120){
-  	window_float = 0.7*window_float;
+  avg = 0;
+  for (int n=0 ; n<rsize ; n++ ){
+  	avg = avg + rtt_rec[n];
+  }
+  avg = avg/rsize;
+  
+  if (avg > 100){
+  	window_float = 0.65*window_float;
   }
   
 }
@@ -134,7 +134,7 @@ void Controller::timout_detected(void)
     fprintf( stderr, "Timeout Detected. \n" );
   }
   
-	window_float = 0.7*window_float;
+	window_float = 0.65*window_float;
 }
 
 void Controller::debugging(int n)
