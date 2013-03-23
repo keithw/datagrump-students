@@ -124,6 +124,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
                                const uint64_t timestamp_ack_received )
 {
   if(sequence_number_acked < 10){
+    uploaddelay=uploaddelay*0.5+(timestamp_ack_received-recv_timestamp_acked-RTT/2)*0.5;
     return;
   }
   double rtttarget=20;
@@ -166,9 +167,9 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     double mrtt=diffsum/((int)rtimes.size());
     double mrttD=dldelay/((int)runmeanLR.size());
     // over 100 ms RTT? ridiculous
-    double change = (mrttD-RTT/2)*0.5-uploaddelay;
-    if(change > 3){change=3;}
-    if(change < -10){change=-10;}
+    double change = (mrttD-RTT/2)-uploaddelay;
+    if(change > 10){change=0;}
+    //if(change < -10){change=-10;}
     uploaddelay+=change;
     double rtteps=rtttarget+uploaddelay;
     //fprintf(stderr,"rttmean: %i\n",(int)mrtt);
