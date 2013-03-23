@@ -169,7 +169,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     double mrttD=dldelay/((int)runmeanLR.size());
     // over 100 ms RTT? ridiculous
     double delta = (mrttD-RTT/2)-uploaddelay;
-    if(change > 0){
+    if(delta > 0){
       uploaddelay+=eps;
     }else{
       uploaddelay-=eps;
