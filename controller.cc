@@ -5,6 +5,8 @@
 #include "controller.hh"
 #include "timestamp.hh"
 
+#include <queue>
+
 using namespace Network;
 
 /* Default constructor */
@@ -12,12 +14,14 @@ Controller::Controller( const bool debug )
   : debug_( debug ), curr_window_size(1), timeout_time(timestamp()-1000),
         packets_in_queue(0), packet_counter(0), time_cutoff(timestamp()),
         measured_rate(0), rate_difference(0), skip_counter(0),
-        last_receive_time(timestamp()), packet_gap(100), rttmin(1000)
+        last_receive_time(timestamp()), packet_gap(100), rttmin(1000),
+        started(false), start_time(timestamp()), rtt(100),
+        rtt_sum(0), rtt_num(0), packet_times()
 {
 }
 
 void Controller::notify_timeout( void ) {
-  packets_in_queue--;
+/////  packets_in_queue--;
   if (packets_in_queue < 0)
     packets_in_queue = 0;
 }
@@ -32,7 +36,21 @@ unsigned int Controller::window_size( void )
     time_cutoff += time_interval;
   }
 
-  float rate = measured_rate * 1000 / time_interval;
+  uint64_t current_time = timestamp();
+  while(!packet_times.empty() && packet_times.front() + time_interval < current_time){
+    packet_times.pop();
+  }
+
+  if (!started) {
+    start_time = timestamp();
+    started = true;
+  }
+  if (timestamp() < start_time + 900) {
+/////    return 0;//(timestamp()-start_time)/10;
+  }
+
+  ///////////float rate = measured_rate * 1000 / time_interval;
+  float rate = packet_times.size() * 1000 / time_interval;
   if (rate < 1000/time_interval)
     rate = 1000/time_interval;
 
@@ -41,14 +59,16 @@ unsigned int Controller::window_size( void )
 
 /////  float stretch = 4;
 
-  float actual_rttmin = rttmin/1000;
+  float actual_rttmin = rttmin*0.001;
+  ////float actual_rttmin = (rtt*0.001 - packets_in_queue/rate);
   if (actual_rttmin < 0.001)
     actual_rttmin = 0.001;
-  else if (rttmin > 1)
+  else if (actual_rttmin > 1)
     actual_rttmin = 1;
 
-  float queue_target = 1 + 0.11*rate;
-/////+0*(rate_deriv-safety); ////stretch * actual_rttmin * (rate );////+ rate_deriv - safety);
+  float queue_target = 1 + actual_rttmin*2*rate; ////0.10 * rate;
+  /////if (rate > 100)
+  /////  queue_target *= 1.2;
 /*
   if (packet_gap > 9*1000/rate) {
     float drate = 1000 / packet_gap;
@@ -63,7 +83,7 @@ unsigned int Controller::window_size( void )
 /////    queue_target = 20;
 /////  if (queue_target > 1000)
 /////    queue_target = 1000;
-  float win_size = queue_target - packets_in_queue;
+  float win_size = queue_target - 0*packets_in_queue;
 
   int the_window_size = (int)win_size;
   if (the_window_size < 1)
@@ -107,14 +127,19 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   packet_gap = current_receive_time - last_receive_time;
   last_receive_time = current_receive_time;
 
-  if (timestamp_ack_received < rttmin + send_timestamp_acked )
-    rttmin = (int64_t)timestamp_ack_received - (int64_t)send_timestamp_acked;
+  rtt = (int64_t)timestamp_ack_received - (int64_t)send_timestamp_acked;
+  if (rtt < rttmin)
+    rttmin = rtt;
+  rtt_sum += rtt;// - packet_times.size() * 1000 * packets_in_queue / time_interval;
+  rtt_num++;
 
   packets_in_queue--;
   if (packets_in_queue < 0)
     packets_in_queue = 0;
 
   packet_counter++;
+
+  packet_times.push(current_receive_time);
 
 /*
   // if delay is greater than the threshold, decrease window size.
@@ -147,5 +172,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
+////  if (started && timestamp() < start_time + 200)
+////    return 10;
   return 100;
 }

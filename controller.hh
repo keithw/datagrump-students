@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <map>
+#include <queue>
 
 /* Flow controller interface */
 
@@ -39,7 +40,15 @@ private:
   uint64_t last_receive_time;
   int64_t packet_gap;
   int64_t rttmin;
-  const uint64_t time_interval = 100;
+  const uint64_t time_interval = 150;
+
+  bool started;
+  uint64_t start_time;
+  int64_t rtt;
+  int64_t rtt_sum;
+  int64_t rtt_num;
+
+  std::queue< uint64_t > packet_times;
 
 public:
   /* Public interface for the flow controller */
