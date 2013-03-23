@@ -13,7 +13,7 @@ using namespace std;
 
 double cwind;
 queue<int>  runmean;
-queue<int>  runmeanLR;//long-range queue
+list<int>  runmeanLR;//long-range queue
 list<int>  stimes;
 list<int>  rtimes;
 
@@ -123,12 +123,12 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   if(sequence_number_acked < 10){
     return;
   }
-  double rtteps=20;
+  double rtttarget=20;
   //push new packet info onto queue
   stimes.push_front(send_timestamp_acked);
   rtimes.push_front(recv_timestamp_acked);
   runmean.push(timestamp_ack_received);
-  runmeanLR.push(timestamp_ack_received);
+  runmeanLR.push_front(timestamp_ack_received);
   //trim queue to only include last (resolution+rtt/2) of packets.
   while(runmean.size()>0 && (timestamp_ack_received-runmean.front())>(resolution)){
     /*fprintf( stderr, "pop %i, timediff %lu \n",
@@ -137,7 +137,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   }
   // Long range queue trim
   while(runmeanLR.size()>0 && (timestamp_ack_received-runmeanLR.front())>(resolutionLR)){
-    runmeanLR.pop();
+    runmeanLR.pop_back();
     stimes.pop_back();
     rtimes.pop_back();
   }
@@ -150,13 +150,19 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
   if(rtimes.size()>0){
     list<int>::const_iterator rIt=rtimes.begin();
     list<int>::const_iterator sIt=stimes.begin();
+    list<int>::const_iterator rmIt=runmeanLR.begin();
     int diffsum=0;
-    for(; (rIt!=rtimes.end() && sIt != stimes.end()); ++rIt, ++sIt){
+    int dldelay=0;
+    for(; (rIt!=rtimes.end() && sIt != stimes.end() && rmIt != runmeanLR.end()); ++rIt, ++sIt, ++rmIt){
     int rtime= *rIt;
     int stime= *sIt;
+    int atime= *rmIt;
     diffsum+=rtime-stime;
+    dldelay+=atime-rtime;
     }
     double mrtt=diffsum/((int)rtimes.size());
+    double mrttD=dldelay/((int)runmeanLR.size());
+    double rtteps=rtttarget+(mrttD-RTT/2);
     //fprintf(stderr,"rttmean: %i\n",(int)mrtt);
     // if our RTT is low and stable with at least 2xRTT our last time
     if(mrtt< (rtt/2+rtteps/4) && ((timestamp_ack_received-lastspike)>(rtt))){
@@ -180,6 +186,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
 	      mrtt);
     }
   }else{
+    double rtteps=rtttarget;
     cwind= bwest*(rtt+rtteps);
       fprintf(stdout,"%i,%i,%i,%.4f,%.4f,FALSE,-1\n",
 	      (int)(timestamp_ack_received-start_time),
