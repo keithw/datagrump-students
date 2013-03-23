@@ -168,32 +168,35 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     if(mrtt< (rtt/2+rtteps/4) && ((timestamp_ack_received-lastspike)>(rtt))){
       cwind=bwest*(rtt+2*rtteps);
       lastspike=timestamp_ack_received;
-      fprintf(stdout,"%i,%i,%i,%.4f,%.4f,TRUE,%.4f\n",
+      fprintf(stdout,"%i,%i,%i,%.4f,%.4f,TRUE,%.4f,%.4f\n",
 	      (int)(timestamp_ack_received-start_time),
 	      (int)(recv_timestamp_acked-send_timestamp_acked),
 	      (int)(timestamp_ack_received-recv_timestamp_acked),
 	      bwest,
 	      cwind,
+	      rtteps,
 	      mrtt);
     }else{
       cwind= bwest*(rtt+rtteps);
-      fprintf(stdout,"%i,%i,%i,%.4f,%.4f,FALSE,%.4f\n",
+      fprintf(stdout,"%i,%i,%i,%.4f,%.4f,FALSE,%.4f,%.4f\n",
 	      (int)(timestamp_ack_received-start_time),
 	      (int)(recv_timestamp_acked-send_timestamp_acked),
 	      (int)(timestamp_ack_received-recv_timestamp_acked),
 	      bwest,
 	      cwind,
+	      rtteps,
 	      mrtt);
     }
   }else{
     double rtteps=rtttarget;
     cwind= bwest*(rtt+rtteps);
-      fprintf(stdout,"%i,%i,%i,%.4f,%.4f,FALSE,-1\n",
+      fprintf(stdout,"%i,%i,%i,%.4f,%.4f,FALSE,-1,%.4f\n",
 	      (int)(timestamp_ack_received-start_time),
 	      (int)(recv_timestamp_acked-send_timestamp_acked),
 	      (int)(timestamp_ack_received-recv_timestamp_acked),
 	      bwest,
-	      cwind);
+	      cwind,
+	      rtteps);
   }
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
