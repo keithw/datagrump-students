@@ -26,10 +26,7 @@ private:
   // Map packet sequence numbers to sent timestamp
   std::unordered_map<uint64_t, uint64_t> sendTimestamps;
 
-  const uint64_t RTT_THRESHOLD_MS = 100;
-  const uint64_t CWND_MIN = 2;
-
-  bool slowStart;
+  const uint64_t CWND_MIN = 1;
 
 public:
   /* Public interface for the flow controller */

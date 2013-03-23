@@ -9,7 +9,7 @@ using namespace Network;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ), cwnd(100), count(0), sa(0), sv(0), rto(1200), sasa(0),
-    previousSA(0), minRTT(5000), sendTimestamps(), slowStart(true)
+    previousSA(0), minRTT(5000), sendTimestamps()
 {
 }
 
@@ -62,7 +62,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
     minRTT = rtt;
   }
 
-  // Update estimators
+  // Update estimators (using calculations from TCP paper by Jacobson & Karels)
   int64_t m = rtt;
   m -= (sa >> 3);
   sa += m;
@@ -83,44 +83,15 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   md -= (sasa >> 2);
   sasa += md; 
 
-  //if (rtt > RTT_THRESHOLD_MS || (rtt > (RTT_THRESHOLD_MS - 30) && (sasa >> 3) > 15)) {
-  //  slowStart = false;
-  //  if (deltaSA >= 80 && (sasa >> 3) >= 0) {
-  //    cwnd = std::max(cwnd / 8, CWND_MIN);
-  //  } else if (deltaSA >= 40 && (sasa >> 3) < 0) {
-  //    cwnd = std::max(cwnd / 4, CWND_MIN);
-  //  } else {
-  //    cwnd = std::max(cwnd / 2, CWND_MIN);
-  //  }
-  //}  else {
-  //  if (slowStart || (deltaSA <= -50 && (sasa >> 3) <= 0)) {
-  //    ++cwnd;
-  //    count = 0;
-  //  } else if (deltaSA <= -25 && (sasa >> 3) > 0) {
-  //    count += 4;
-  //  } else {
-  //    count++;
-  //  }
-  //  if (count >= cwnd) {
-  //    ++cwnd;
-  //    count = 0;
-  //  }
-  //}
-
-  //uint64_t rttAvg = sa >> 3;
-//  uint64_t avgChange = sasa >> 2;
-  //if (rtt > RTT_THRESHOLD_MS) {
-  if (rtt > (minRTT * 2) && (sasa >> 2) > 10) {
-    cwnd = std::max(cwnd - 1, CWND_MIN);
+  if (rtt > (minRTT * 2) && (sasa >> 2) > 5) {
+    uint64_t decrease = 1;
+    cwnd = std::max(cwnd - decrease, CWND_MIN);
   } else {
     if (rtt < (minRTT + 10)) {
       count += 2;
     } else {
       count += 1;
     }
-    //if ((sasa >> 2) < 0 && ((sa >> 3) < RTT_THRESHOLD_MS)) {
-    //  count++;
-    //}
     if (count >= cwnd) {
       ++cwnd;
       count = 0;
