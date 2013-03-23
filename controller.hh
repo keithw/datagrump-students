@@ -62,7 +62,6 @@ public:
   double rho;
 
   list< pair<uint64_t, uint64_t> > burstPackets;
-  list< pair<uint64_t, uint64_t> > sendTimestamp;
 
 
   double estimateParameters();

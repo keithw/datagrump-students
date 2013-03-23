@@ -48,8 +48,7 @@ Controller::Controller( const bool debug )
     lastcwind(1),
     start_time(timestamp()),
     rho(0.25),
-                  burstPackets(list< pair<uint64_t, uint64_t> >()),
-    sendTimestamp(list< pair<uint64_t, uint64_t> >())
+    burstPackets(list< pair<uint64_t, uint64_t> >())
 {
   start_time = timestamp();
   fprintf( stderr, "startTime %lu\n", start_time);
@@ -85,7 +84,6 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
     fprintf( stderr, "At time %lu, sent packet %lu.\n",
              send_timestamp, sequence_number );
   }
-  sendTimestamp.push_back(pair<uint64_t, uint64_t>(sequence_number, send_timestamp));
 }
 
 /* An ack was received */
@@ -319,13 +317,7 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
                                   const uint64_t timestamp_ack_received ){
   networkDown = false;
   double delay = RTT;
-  for (list< pair<uint64_t, uint64_t> >::iterator it = sendTimestamp.begin(); it != sendTimestamp.end(); ++it) {
-    if (it->first == sequence_number_acked) {
-      delay = timestamp_ack_received - it->second;
-      sendTimestamp.erase(it);
-      break;
-    }
-  }
+  delay = (timestamp_ack_received - send_timestamp_acked) - uploaddelay;
   rho = 0.25;
   while (burstPackets.size() > 0) {
     if (sequence_number_acked <= burstPackets.front().second) break;
