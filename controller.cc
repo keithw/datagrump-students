@@ -95,12 +95,12 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   	//window_float = (1.0+(1.0*(avg_i-rtt_i)/avg_i))*window_float;// + (1.0/window);
   	//window_float = window_float + (4.75/window_float);
   	//window_float = window_float + (8.0/window_float);
-  	window_float = 1.07*window_float;
+  	window_float = 1.08*window_float;
   }
   else{
   	//window_float = (1.0*(rtt_i-avg_i)/avg_i)*window_float;// - (1.5/window);
   	//window_float = window_float - (2.75/window_float);
-  	window_float = 0.97*window_float;
+  	window_float = 0.96*window_float;
   }
   
   for (int n=0 ; n<(rsize-1) ; n++ ){
@@ -130,7 +130,7 @@ void Controller::timout_detected(void)
     fprintf( stderr, "Timeout Detected. \n" );
   }
   
-	window_float = 0.65*window_float;
+	window_float = 0.6*window_float;
 }
 
 void Controller::debugging(int n)
