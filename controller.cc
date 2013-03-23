@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <algorithm>
 
 #include "controller.hh"
 #include "timestamp.hh"
@@ -16,14 +17,13 @@ Controller::Controller( const bool debug )
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
-  //int the_window_size = 1;
 
   if ( debug_ ) {
-    fprintf( stderr, "At time %lu, return window_size = %f.\n",
-	     timestamp(), the_window_size );
+    fprintf( stderr, "At time %lu, return window_size = %i.\n",
+	     timestamp(), (int) (the_throughput * the_estimated_rtt));
   }
 
-  return the_window_size;
+  return the_throughput * the_estimated_rtt;
 }
 
 
@@ -38,6 +38,7 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
     fprintf( stderr, "At time %lu, sent packet %lu.\n",
 	     send_timestamp, sequence_number );
   }
+
 }
 
 /* An ack was received */
@@ -48,15 +49,23 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t recv_timestamp_acked,
 			       /* when the acknowledged packet was received */
 			       const uint64_t timestamp_ack_received )
-                               /* when the ack was received (by sender) */
+                   /* when the ack was received (by sender) */
 {
-  float throughput = 1500/(timestamp_ack_received - send_timestamp_acked);
-  fprintf(stderr, "The throughput is %f", throughput);
-  if (throughput * .01 * timeout_ms() > the_window_size){
-      the_window_size = the_window_size + ai/the_window_size;
-  } else {
-      the_window_size = throughput * .01 * timeout_ms();
-  }
+  uint64_t rtt = recv_timestamp_acked - send_timestamp_acked;
+  uint64_t timediff = timestamp_ack_received - update_time;
+
+  if(timediff >= update_interval){
+      int numpkts = sequence_number_acked - last_seq_num;
+
+      the_throughput = std::max(1.0/rtt, 
+              .65 * the_throughput + .35 * numpkts/timediff);
+ 
+      update_time = timestamp_ack_received;
+      last_seq_num = sequence_number_acked;
+
+      fprintf(stderr, "The throughput is %f \n", 
+         the_throughput);
+  } 
 
   /* Default: take no action */
 
@@ -66,11 +75,13 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
 	     send_timestamp_acked, recv_timestamp_acked );
+
   }
 }
+
 
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return the_timeout; /* timeout of one second */
+  return 100; /* timeout of one second */
 }

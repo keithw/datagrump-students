@@ -11,10 +11,11 @@ private:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
-  float the_window_size = 12.0;
-  float ai = 3.0;
-  float md = 0.5;
-  float the_timeout = 100;
+  uint64_t the_estimated_rtt = 60;
+  float the_throughput = 0.0;
+  uint64_t update_time = 0; //when to update
+  uint64_t update_interval = 25; //how often to update throughput
+  uint64_t last_seq_num = 0;
 
 public:
   /* Public interface for the flow controller */
