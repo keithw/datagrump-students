@@ -25,7 +25,7 @@ double eps=0.01;
 FILE *fsend = stderr;
 FILE *fget = stderr;
 int lastspike = 0;
-
+bool recovering = false;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
@@ -228,6 +228,10 @@ double Controller::estimateParameters() {
   double ackRateObs = (ackTracker > 0.0) ? (1 / ackTracker) : ackRateEst;
   double cwindDL = ackRateObs * RTT;
   double wt = 0.5;
+  if (recovering) {
+    recovering = false;
+    return (36.8/ackTracker); // MTU/ackpacketsize /  packet receving rate
+  }
   if (rho > 0.5) { // we have confident, recent estimates
     if ((delayTracker <= (1.1*RTT)) && (ackRateObs > ackRateEst)) {
       fprintf(fsend, "%lu: cwinds: %.4f, %.4f : %.4f\n", tStamp, cwindDL, cwind, ackTracker);
@@ -321,6 +325,7 @@ void Controller::refineModulation(const uint64_t sequence_number_acked,
                                   const uint64_t send_timestamp_acked,
                                   const uint64_t recv_timestamp_acked,
                                   const uint64_t timestamp_ack_received ){
+  if (networkDown) recovering = true;
   networkDown = false;
   double delay = RTT;
   delay = (timestamp_ack_received - send_timestamp_acked) - uploaddelay;
