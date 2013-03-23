@@ -166,9 +166,10 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     double mrtt=diffsum/((int)rtimes.size());
     double mrttD=dldelay/((int)runmeanLR.size());
     // over 100 ms RTT? ridiculous
-    if((mrttD-RTT/2)<100){
-      uploaddelay=uploaddelay*0.5+(mrttD-RTT/2)*0.5;
-    }
+    double change = (mrttD-RTT/2)*0.5-uploaddelay;
+    if(change > 3){change=3;}
+    if(change < -10){change=-10;}
+    uploaddelay+=change;
     double rtteps=rtttarget+uploaddelay;
     //fprintf(stderr,"rttmean: %i\n",(int)mrtt);
     // if our RTT is low and stable with at least 2xRTT our last time
