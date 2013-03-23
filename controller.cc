@@ -21,6 +21,7 @@ unsigned int Controller::window_size( void )
   /* Default: fixed window size of one outstanding packet */
   //int the_window_size = 15;
   
+  //Restrict the window size to be a minimum of 1
   if (window_float<=1){window_float = 1.0;}
   window = (unsigned int) window_float;
 
@@ -71,8 +72,8 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   
   
   rtt = timestamp_ack_received - send_timestamp_acked;
-  //int rsize = 5;//sizeof(rtt_rec)/sizeof(float);
   
+  //Compute Timeout:
   srtt = (alpha*rtt) + ((1-alpha)*srtt);
   dev = rtt - srtt;
   dev = dev>0?dev:0-dev;
@@ -108,8 +109,8 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }
   avg = avg/rsize;
   
-  if (avg > 110){
-  	window_float = 0.8*window_float;
+  if (avg > 100){
+  	window_float = 0.85*window_float;
   }
   
 }
