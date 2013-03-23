@@ -100,7 +100,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   	//window_float = window_float + (4.75/window_float);
   	window_float = window_float + (3.0/window_float);
   }
-  elif{
+  if{
   	//window_float = (1.0*(rtt_i-avg_i)/avg_i)*window_float;// - (1.5/window);
   	//window_float = window_float - (2.75/window_float);
   	window_float = 0.97*window_float;
