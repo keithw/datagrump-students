@@ -45,7 +45,7 @@ int main( int argc, char *argv[] )
     /* Loop */
     while ( 1 ) {
       /* Ask controller: what is the window size? */
-      unsigned int window_size = controller.window_size()*2;
+      unsigned int window_size = controller.window_size();
       bool markBeginning= false;
       unsigned int ns = 0;
       /* fill up window */
