@@ -4,6 +4,7 @@
 #include <cassert>
 #include <utility>
 #include <unistd.h>
+#include <cstdlib>
 
 #include "controller.hh"
 #include "timestamp.hh"
@@ -16,6 +17,8 @@ queue<int>  runmean;
 list<int>  runmeanLR;//long-range queue
 list<int>  stimes;
 list<int>  rtimes;
+
+double uploaddelay=0;
 
 #define RTT 40.0
 FILE *fsend = stderr;
@@ -162,10 +165,14 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     }
     double mrtt=diffsum/((int)rtimes.size());
     double mrttD=dldelay/((int)runmeanLR.size());
-    double rtteps=rtttarget+(mrttD-RTT/2);
+    // over 100 ms RTT? ridiculous
+    if((mrttD-RTT/2)<100){
+      uploaddelay=uploaddelay*0.5+(mrttD-RTT/2)*0.5;
+    }
+    double rtteps=rtttarget+uploaddelay;
     //fprintf(stderr,"rttmean: %i\n",(int)mrtt);
     // if our RTT is low and stable with at least 2xRTT our last time
-    if(mrtt< (rtt/2+rtteps/4) && ((timestamp_ack_received-lastspike)>(rtt))){
+    if(mrtt< (rtt/2+rtteps/4+uploaddelay) && ((timestamp_ack_received-lastspike)>(rtt))){
       cwind=bwest*(rtt+2*rtteps);
       lastspike=timestamp_ack_received;
       fprintf(stdout,"%i,%i,%i,%.4f,%.4f,TRUE,%.4f,%.4f\n",
