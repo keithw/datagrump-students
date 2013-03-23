@@ -136,7 +136,7 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     runmean.pop();
   }
   // Long range queue trim
-  while(runmeanLR.size()>0 && (timestamp_ack_received-runmeanLR.front())>(resolutionLR)){
+  while(runmeanLR.size()>0 && (timestamp_ack_received-runmeanLR.back())>(resolutionLR)){
     runmeanLR.pop_back();
     stimes.pop_back();
     rtimes.pop_back();
