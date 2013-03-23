@@ -19,6 +19,7 @@ list<int>  stimes;
 list<int>  rtimes;
 
 double uploaddelay=0;
+double eps=0.01;
 
 #define RTT 40.0
 FILE *fsend = stderr;
@@ -167,10 +168,13 @@ void Controller::refineParameters(const uint64_t sequence_number_acked,
     double mrtt=diffsum/((int)rtimes.size());
     double mrttD=dldelay/((int)runmeanLR.size());
     // over 100 ms RTT? ridiculous
-    double change = (mrttD-RTT/2)-uploaddelay;
-    if(change > 10){change=0;}
+    double delta = (mrttD-RTT/2)-uploaddelay;
+    if(change > 0){
+      uploaddelay+=eps;
+    }else{
+      uploaddelay-=eps;
+    }
     //if(change < -10){change=-10;}
-    uploaddelay+=change;
     double rtteps=rtttarget+uploaddelay;
     //fprintf(stderr,"rttmean: %i\n",(int)mrtt);
     // if our RTT is low and stable with at least 2xRTT our last time
