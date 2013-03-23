@@ -317,7 +317,7 @@ int Controller::chompWindow(unsigned int cint, double cwindDL) {
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 50; /* timeout of one second */
+  return 40; /* timeout of one second */
 }
 
 
