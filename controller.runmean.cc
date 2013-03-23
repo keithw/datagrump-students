@@ -67,7 +67,7 @@ unsigned int Controller::window_size( void )
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
              timestamp(), cint );
   }
-  return cint*2;
+  return cint*2+20;
 }
 
 /* A packet was sent */
