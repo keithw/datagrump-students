@@ -10,7 +10,7 @@ using namespace Network;
 Controller::Controller( const bool debug )
   : debug_( debug ), window(30), window_float(30.0), timeout(1500),
   rtt(0), srtt(0), alpha(0.4), dev(0), rttdev(0),
-  beta(0.4), rtt_rec{0,0,0,0,0,0,0}, rsize(sizeof(rtt_rec)/sizeof(float)),
+  beta(0.4), rtt_rec{0,0,0}, rsize(sizeof(rtt_rec)/sizeof(float)),
   avg(0), ratio(0), wb(2)
 { 
 }
@@ -100,10 +100,10 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   	//window_float = window_float + (4.75/window_float);
   	window_float = window_float + (3.0/window_float);
   }
-  else{
+  elif{
   	//window_float = (1.0*(rtt_i-avg_i)/avg_i)*window_float;// - (1.5/window);
   	//window_float = window_float - (2.75/window_float);
-  	window_float = window_float - (3.0/window_float);
+  	window_float = 0.97*window_float;
   }
   
   for (int n=0 ; n<(rsize-1) ; n++ ){
