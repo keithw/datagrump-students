@@ -62,10 +62,10 @@ Controller::Controller( const bool debug )
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
-  //double cwindDL = estimateParameters();
+  double cwindDL = estimateParameters();
 //assert(cwindDL >= 0) ;
   int cint = (int) cwind;
-  //cint = chompWindow(cint, cwindDL);
+  cint = chompWindow(cint, cwindDL);
   if(cint<1){cint=1;}
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
