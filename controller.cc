@@ -91,13 +91,13 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   if (avg_i != 0){
   	ratio = diff/(1.0*avg_i);
   }
-  if (rtt < (avg)){
+  if (rtt < (0.95*avg)){
   	//window_float = (1.0+(1.0*(avg_i-rtt_i)/avg_i))*window_float;// + (1.0/window);
   	//window_float = window_float + (4.75/window_float);
   	//window_float = window_float + (8.0/window_float);
   	window_float = 1.08*window_float;
   }
-  else{
+  else if (rtt > (1.05*avg)){
   	//window_float = (1.0*(rtt_i-avg_i)/avg_i)*window_float;// - (1.5/window);
   	//window_float = window_float - (2.75/window_float);
   	window_float = 0.98*window_float;
