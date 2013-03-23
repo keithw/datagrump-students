@@ -14,6 +14,7 @@ private:
   uint64_t cur_pkt_count;
   uint64_t last_tick_time;
   double throughput;
+  int ticks_higher, ticks_lower;
 
   void update_estimate(uint64_t cur_time, uint64_t recent_delay);
 

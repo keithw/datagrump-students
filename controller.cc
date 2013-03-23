@@ -17,7 +17,9 @@ Controller::Controller(const bool debug)
   : debug_(debug),
     cur_pkt_count(0),
     last_tick_time(0),
-    throughput(0.0)
+    throughput(0.0),
+    ticks_higher(0),
+    ticks_lower(0)
 {
 }
 
@@ -35,6 +37,14 @@ void Controller::update_estimate(uint64_t cur_time, uint64_t recent_delay) {
       (1 - EWMA_GAIN) * throughput + EWMA_GAIN * recent_throughput,
       lower_bound);
 
+    if (recent_throughput > throughput) {
+      ticks_higher++;
+      ticks_lower = 0;
+    } else {
+      ticks_lower++;
+      ticks_higher = 0;
+    }
+
     cur_pkt_count = 0;
     // Round down to nearest TICK_LEN.
     last_tick_time = cur_time - (cur_time % TICK_LEN);
@@ -44,7 +54,8 @@ void Controller::update_estimate(uint64_t cur_time, uint64_t recent_delay) {
 /* Get current window size, in packets */
 unsigned int Controller::window_size(void)
 {
-  unsigned int the_window_size = (unsigned int) (throughput * SAFE_DELAY);
+  double scale = 1.0 + 0.05 * (ticks_higher - ticks_lower) / 5;
+  unsigned int the_window_size = (unsigned int) (throughput * scale * SAFE_DELAY);
 
   if (debug_) {
     fprintf(stderr, "At time %lu, return window_size = %d.\n",
