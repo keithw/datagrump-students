@@ -35,8 +35,9 @@ int main( int argc, char *argv[] )
     while ( 1 ) {
       Packet received_packet = sock.recv();
       fprintf( stderr, "Recv on %d\n",(int)timestamp());
-      if (sequence_number % 4 < 2) {
+      if ((sequence_number % 4) < 2) {
         /* Send back acknowledgment */
+        fprintf(stderr, "ACKING: %lu\n",sequence_number);
         Packet ack( received_packet.addr(), sequence_number, received_packet );
         sock.send( ack );
       }
