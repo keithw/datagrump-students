@@ -58,7 +58,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
       int numpkts = sequence_number_acked - last_seq_num;
 
       the_throughput = std::max(1.0/rtt, 
-              .65 * the_throughput + .35 * numpkts/timediff);
+              .70 * the_throughput + .35 * numpkts/timediff);
  
       update_time = timestamp_ack_received;
       last_seq_num = sequence_number_acked;
